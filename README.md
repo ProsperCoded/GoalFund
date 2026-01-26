@@ -233,7 +233,7 @@ OPEN → FUNDED → WITHDRAWN → PROOF_SUBMITTED → VERIFIED
 
 ## 7. Event-Driven Communication
 
-**Transport:** NATS (or internal event bus)
+**Transport:** RabbitMQ
 
 **Core Events:**
 
@@ -278,7 +278,7 @@ OPEN → FUNDED → WITHDRAWN → PROOF_SUBMITTED → VERIFIED
 - Gin (standardized across services)
 - PostgreSQL
 - Redis (idempotency & caching)
-- NATS (events)
+- RabbitMQ (events & queues)
 
 ### Frontend
 
@@ -327,5 +327,3 @@ By completing GoFund, you will understand:
 - Event-driven systems
 - Operational monitoring
 - Microservice boundaries
-
-This is the real win of the project.

@@ -1,0 +1,11 @@
+go 1.21
+
+use (
+	./shared
+	./services/api-gateway
+	./services/payments-service
+	./services/ledger-service
+	./services/goals-service
+	./services/users-service
+	./services/notifications-service
+)

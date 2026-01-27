@@ -85,6 +85,25 @@ services:
       timeout: 5s
       retries: 5
 
+  # MongoDB for Payments Service
+  mongodb-payments:
+    image: mongo:7
+    container_name: gofund-mongodb-payments
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: payments_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-payments-data:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # API Gateway (Nginx)
   api-gateway:
     image: nginx:alpine
@@ -198,11 +217,14 @@ services:
       PORT: 8081
       PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
       PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-}
+      MONGODB_URI: mongodb://admin:admin123@mongodb-payments:27017/payments_db?authSource=admin
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis://redis:6379
     expose:
       - "8081"
     depends_on:
+      mongodb-payments:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       redis:
@@ -234,5 +256,6 @@ volumes:
   postgres-ledger-data:
   postgres-goals-data:
   postgres-users-data:
+  mongodb-payments-data:
   rabbitmq-data:
   redis-data:

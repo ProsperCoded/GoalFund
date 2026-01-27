@@ -85,25 +85,21 @@ services:
       timeout: 5s
       retries: 5
 
-  # API Gateway
+  # API Gateway (Nginx)
   api-gateway:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        APP_NAME: api-gateway
+    image: nginx:alpine
     container_name: gofund-api-gateway
-    environment:
-      PORT: 8080
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
-      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/proxy_params:/etc/nginx/proxy_params:ro
     ports:
-      - "8080:8080"
+      - "8080:80"
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - users-service
+      - goals-service
+      - ledger-service
+      - payments-service
+      - notifications-service
     restart: unless-stopped
 
   # Users Service
@@ -123,8 +119,8 @@ services:
       USERS_DB_NAME: users_db
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis://redis:6379
-    ports:
-      - "8084:8084"
+    expose:
+      - "8084"
     depends_on:
       postgres-users:
         condition: service_healthy
@@ -151,8 +147,8 @@ services:
       GOALS_DB_NAME: goals_db
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis://redis:6379
-    ports:
-      - "8083:8083"
+    expose:
+      - "8083"
     depends_on:
       postgres-goals:
         condition: service_healthy
@@ -179,8 +175,8 @@ services:
       LEDGER_DB_NAME: ledger_db
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis://redis:6379
-    ports:
-      - "8082:8082"
+    expose:
+      - "8082"
     depends_on:
       postgres-ledger:
         condition: service_healthy
@@ -204,8 +200,8 @@ services:
       PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-}
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis://redis:6379
-    ports:
-      - "8081:8081"
+    expose:
+      - "8081"
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -225,8 +221,8 @@ services:
       PORT: 8085
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis://redis:6379
-    ports:
-      - "8085:8085"
+    expose:
+      - "8085"
     depends_on:
       rabbitmq:
         condition: service_healthy

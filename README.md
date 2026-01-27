@@ -94,7 +94,7 @@ GoFund solves this by enforcing **ledger-based accounting**, **verified payments
 
 | Service               | Responsibility            | Core Purpose             |
 | --------------------- | ------------------------- | ------------------------ |
-| API Gateway           | Entry point & control     | Security & routing       |
+| API Gateway (Nginx)   | Entry point & control     | Security & routing       |
 | Payments Service      | External payment boundary | Paystack integration     |
 | Ledger Service        | System of record          | Money correctness        |
 | Goals Service         | Business rules            | Product logic            |
@@ -105,22 +105,33 @@ GoFund solves this by enforcing **ledger-based accounting**, **verified payments
 
 ## 6. Service Definitions (Detailed)
 
-### 6.1 API Gateway
+### 6.1 API Gateway (Nginx)
 
-**Purpose:** Control plane
+**Purpose:** Control plane & reverse proxy
+
+**Technology:** Nginx (not Go-based service)
 
 **Responsibilities:**
 
-- Authentication & authorization
-- Rate limiting
-- Request validation
-- Trace propagation (Datadog)
-- Routing to services
+- HTTP reverse proxy & load balancing
+- Rate limiting (10 req/s general, 5 req/s auth)
+- Request routing to microservices
+- SSL termination & security headers
+- WebSocket support for notifications
+- Static file serving (if needed)
+
+**Routing:**
+- `/api/v1/users/*` → Users Service (port 8084)
+- `/api/v1/goals/*` → Goals Service (port 8083)  
+- `/api/v1/ledger/*` → Ledger Service (port 8082)
+- `/api/v1/payments/*` → Payments Service (port 8081)
+- `/api/v1/notifications/*` → Notifications Service (port 8085)
 
 **Does NOT:**
 
 - Execute business logic
 - Access databases
+- Handle authentication (delegated to services)
 
 ---
 
@@ -288,7 +299,7 @@ OPEN → FUNDED → WITHDRAWN → PROOF_SUBMITTED → VERIFIED
 ### Infrastructure
 
 - Docker & Docker Compose
-- API Gateway (Go-based or Nginx initially)
+- API Gateway (Nginx reverse proxy)
 
 ### Monitoring
 

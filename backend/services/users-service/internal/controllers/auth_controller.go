@@ -3,23 +3,20 @@ package controllers
 import (
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gofund/users-service/internal/service"
 )
 
 // AuthController handles authentication-related endpoints
 type AuthController struct {
-	// TODO: Add dependencies like JWT service, user repository, etc.
-	// jwtService    *jwt.Service
-	// userRepo      *repository.UserRepository
-	// logger        *logger.Logger
+	authService *service.AuthService
 }
 
 // NewAuthController creates a new auth controller instance
-func NewAuthController() *AuthController {
+func NewAuthController(authService *service.AuthService) *AuthController {
 	return &AuthController{
-		// TODO: Initialize dependencies
+		authService: authService,
 	}
 }
 
@@ -46,96 +43,109 @@ func (ac *AuthController) VerifyToken(c *gin.Context) {
 		return
 	}
 
-	// TODO: Implement JWT token validation
-	// Example implementation structure:
-	//
-	// 1. Parse and validate JWT token
-	// claims, err := ac.jwtService.ValidateToken(token)
-	// if err != nil {
-	//     c.Status(http.StatusUnauthorized)
-	//     return
-	// }
-	//
-	// 2. Check token expiration
-	// if claims.ExpiresAt.Before(time.Now()) {
-	//     c.Status(http.StatusUnauthorized)
-	//     return
-	// }
-	//
-	// 3. Optional: Check if user is still active (cache this check)
-	// user, err := ac.userRepo.GetByID(claims.UserID)
-	// if err != nil || !user.IsActive {
-	//     c.Status(http.StatusUnauthorized)
-	//     return
-	// }
-	//
-	// 4. Set user context headers for downstream services
-	// c.Header("X-User-ID", claims.UserID)
-	// c.Header("X-User-Email", claims.Email)
-	// c.Header("X-User-Roles", strings.Join(claims.Roles, ","))
-
-	// TEMPORARY: Mock implementation for testing
-	// Remove this when implementing real JWT validation
-	if token == "mock-valid-token" {
-		c.Header("X-User-ID", "user-123")
-		c.Header("X-User-Email", "test@example.com")
-		c.Header("X-User-Roles", "user")
-		c.Status(http.StatusOK)
+	// Validate access token
+	claims, err := ac.authService.ValidateAccessToken(token)
+	if err != nil {
+		c.Status(http.StatusUnauthorized)
 		return
 	}
 
-	// Invalid token
-	c.Status(http.StatusUnauthorized)
+	// Set user context headers for downstream services
+	c.Header("X-User-ID", claims.UserID)
+	c.Header("X-User-Email", claims.Email)
+	c.Header("X-User-Roles", strings.Join(claims.Roles, ","))
+	
+	c.Status(http.StatusOK)
 }
 
 // Login handles user authentication and JWT token generation
 func (ac *AuthController) Login(c *gin.Context) {
-	// TODO: Implement login logic
-	// 1. Extract email/password from request
-	// 2. Validate credentials against database
-	// 3. Generate JWT token with user claims
-	// 4. Return token and user info
-	
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"message": "Login endpoint not implemented yet",
-	})
+	var req service.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Authenticate user
+	response, err := ac.authService.Login(&req)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // Register handles user registration
 func (ac *AuthController) Register(c *gin.Context) {
-	// TODO: Implement registration logic
-	// 1. Validate registration data
-	// 2. Check if user already exists
-	// 3. Hash password
-	// 4. Create user in database
-	// 5. Generate JWT token
-	// 6. Return token and user info
-	
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"message": "Register endpoint not implemented yet",
-	})
+	var req service.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Register user
+	response, err := ac.authService.Register(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, response)
 }
 
 // RefreshToken handles JWT token refresh
 func (ac *AuthController) RefreshToken(c *gin.Context) {
-	// TODO: Implement token refresh logic
-	// 1. Extract refresh token
-	// 2. Validate refresh token
-	// 3. Generate new access token
-	// 4. Return new tokens
-	
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"message": "Refresh token endpoint not implemented yet",
-	})
+	var req service.RefreshRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Refresh token
+	tokenPair, err := ac.authService.RefreshToken(&req)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, tokenPair)
 }
 
 // Logout handles user logout (token invalidation)
 func (ac *AuthController) Logout(c *gin.Context) {
-	// TODO: Implement logout logic
-	// 1. Extract token from header
-	// 2. Add token to blacklist (Redis)
-	// 3. Return success response
-	
+	var req service.RefreshRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Logout (invalidate refresh token session)
+	if err := ac.authService.Logout(req.RefreshToken); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Logged out successfully",
 	})

@@ -3,12 +3,13 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofund/users-service/internal/controllers"
+	"github.com/gofund/users-service/internal/service"
 )
 
 // SetupRoutes configures all routes for the Users Service
-func SetupRoutes(r *gin.Engine) {
+func SetupRoutes(r *gin.Engine, authService *service.AuthService) {
 	// Initialize controllers
-	authController := controllers.NewAuthController()
+	authController := controllers.NewAuthController(authService)
 
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {

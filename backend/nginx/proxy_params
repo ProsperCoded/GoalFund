@@ -16,3 +16,7 @@ proxy_buffers 8 4k;
 
 # Request body
 client_max_body_size 10M;
+
+# Connection keep-alive for upstream
+proxy_http_version 1.1;
+proxy_set_header Connection "";

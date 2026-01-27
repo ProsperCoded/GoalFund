@@ -89,7 +89,9 @@ services:
   api-gateway:
     build:
       context: .
-      dockerfile: services/api-gateway/Dockerfile
+      dockerfile: Dockerfile
+      args:
+        APP_NAME: api-gateway
     container_name: gofund-api-gateway
     environment:
       PORT: 8080
@@ -108,7 +110,9 @@ services:
   users-service:
     build:
       context: .
-      dockerfile: services/users-service/Dockerfile
+      dockerfile: Dockerfile
+      args:
+        APP_NAME: users-service
     container_name: gofund-users-service
     environment:
       PORT: 8084
@@ -134,7 +138,9 @@ services:
   goals-service:
     build:
       context: .
-      dockerfile: services/goals-service/Dockerfile
+      dockerfile: Dockerfile
+      args:
+        APP_NAME: goals-service
     container_name: gofund-goals-service
     environment:
       PORT: 8083
@@ -160,7 +166,9 @@ services:
   ledger-service:
     build:
       context: .
-      dockerfile: services/ledger-service/Dockerfile
+      dockerfile: Dockerfile
+      args:
+        APP_NAME: ledger-service
     container_name: gofund-ledger-service
     environment:
       PORT: 8082
@@ -186,7 +194,9 @@ services:
   payments-service:
     build:
       context: .
-      dockerfile: services/payments-service/Dockerfile
+      dockerfile: Dockerfile
+      args:
+        APP_NAME: payments-service
     container_name: gofund-payments-service
     environment:
       PORT: 8081
@@ -207,7 +217,9 @@ services:
   notifications-service:
     build:
       context: .
-      dockerfile: services/notifications-service/Dockerfile
+      dockerfile: Dockerfile
+      args:
+        APP_NAME: notifications-service
     container_name: gofund-notifications-service
     environment:
       PORT: 8085

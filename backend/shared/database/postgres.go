@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-// Config holds database configuration
-type Config struct {
+// PostgresConfig holds database configuration for standard sql.DB connections
+type PostgresConfig struct {
 	Host     string
 	Port     int
 	User     string
@@ -16,7 +16,7 @@ type Config struct {
 }
 
 // Connect establishes a PostgreSQL connection
-func Connect(cfg Config) (*sql.DB, error) {
+func Connect(cfg PostgresConfig) (*sql.DB, error) {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.DBName, cfg.SSLMode)
 	

@@ -7,4 +7,3 @@ require (
 	github.com/gofund/shared v0.0.0
 )
 
-replace github.com/gofund/shared => ../../shared

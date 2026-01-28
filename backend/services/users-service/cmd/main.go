@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,7 @@ func main() {
 	// Initialize database
 	dbConfig := database.Config{
 		Host:     getEnv("USERS_DB_HOST", "localhost"),
-		Port:     5435,
+		Port:     getEnvInt("USERS_DB_PORT", 5432),
 		User:     getEnv("USERS_DB_USER", "postgres"),
 		Password: getEnv("USERS_DB_PASSWORD", "postgres"),
 		DBName:   getEnv("USERS_DB_NAME", "users_db"),
@@ -70,6 +71,16 @@ func main() {
 func getEnv(key, fallback string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return fallback
+}
+
+// getEnvInt gets environment variable as integer with fallback
+func getEnvInt(key string, fallback int) int {
+	if value := os.Getenv(key); value != "" {
+		if intValue, err := strconv.Atoi(value); err == nil {
+			return intValue
+		}
 	}
 	return fallback
 }

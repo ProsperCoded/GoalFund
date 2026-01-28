@@ -4,6 +4,12 @@ schema "public" {
   comment = "GoFund database schema"
 }
 
+// Enums
+enum "user_role" {
+  schema = schema.public
+  values = ["user", "admin"]
+}
+
 // Users Service Tables
 table "users" {
   schema = schema.public
@@ -46,6 +52,11 @@ table "users" {
     type = boolean
     default = false
   }
+  column "role" {
+    null = false
+    type = enum("user_role")
+    default = "user"
+  }
   column "created_at" {
     null = false
     type = timestamptz
@@ -72,73 +83,6 @@ table "users" {
   }
 }
 
-table "roles" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "name" {
-    null = false
-    type = varchar(50)
-  }
-  column "description" {
-    null = true
-    type = varchar(255)
-  }
-  column "permissions" {
-    null = true
-    type = jsonb
-  }
-  column "created_at" {
-    null = false
-    type = timestamptz
-    default = sql("CURRENT_TIMESTAMP")
-  }
-  
-  primary_key {
-    columns = [column.id]
-  }
-  
-  index "idx_roles_name" {
-    unique = true
-    columns = [column.name]
-  }
-}
-
-table "user_roles" {
-  schema = schema.public
-  column "user_id" {
-    null = false
-    type = uuid
-  }
-  column "role_id" {
-    null = false
-    type = uuid
-  }
-  column "assigned_at" {
-    null = false
-    type = timestamptz
-    default = sql("CURRENT_TIMESTAMP")
-  }
-  
-  primary_key {
-    columns = [column.user_id, column.role_id]
-  }
-  
-  foreign_key "fk_user_roles_user" {
-    columns     = [column.user_id]
-    ref_columns = [table.users.column.id]
-    on_delete   = CASCADE
-  }
-  
-  foreign_key "fk_user_roles_role" {
-    columns     = [column.role_id]
-    ref_columns = [table.roles.column.id]
-    on_delete   = CASCADE
-  }
-}
 
 table "sessions" {
   schema = schema.public
@@ -183,6 +127,56 @@ table "sessions" {
   }
   
   foreign_key "fk_sessions_user" {
+    columns     = [column.user_id]
+    ref_columns = [table.users.column.id]
+    on_delete   = CASCADE
+  }
+}
+
+table "password_reset_tokens" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "user_id" {
+    null = false
+    type = uuid
+  }
+  column "token_hash" {
+    null = false
+    type = varchar(255)
+  }
+  column "expires_at" {
+    null = false
+    type = timestamptz
+  }
+  column "used" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "created_at" {
+    null = false
+    type = timestamptz
+    default = sql("CURRENT_TIMESTAMP")
+  }
+  
+  primary_key {
+    columns = [column.id]
+  }
+  
+  index "idx_password_reset_tokens_user_id" {
+    columns = [column.user_id]
+  }
+  
+  index "idx_password_reset_tokens_token_hash" {
+    unique = true
+    columns = [column.token_hash]
+  }
+  
+  foreign_key "fk_password_reset_tokens_user" {
     columns     = [column.user_id]
     ref_columns = [table.users.column.id]
     on_delete   = CASCADE

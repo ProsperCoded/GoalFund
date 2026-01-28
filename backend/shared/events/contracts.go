@@ -70,3 +70,42 @@ type ProofVerified struct {
 func (e ProofVerified) EventType() string { return "ProofVerified" }
 func (e ProofVerified) EventID() string   { return e.ID }
 func (e ProofVerified) Timestamp() int64 { return e.CreatedAt }
+
+// UserSignedUp event is emitted when a user signs up
+type UserSignedUp struct {
+	ID        string
+	UserID    string
+	Email     string
+	Username  string
+	CreatedAt int64
+}
+
+func (e UserSignedUp) EventType() string { return "UserSignedUp" }
+func (e UserSignedUp) EventID() string   { return e.ID }
+func (e UserSignedUp) Timestamp() int64  { return e.CreatedAt }
+
+// PasswordResetRequested event is emitted when a password reset is requested
+type PasswordResetRequested struct {
+	ID        string
+	UserID    string
+	Email     string
+	Token     string // This will be the actual token, not the hash
+	CreatedAt int64
+}
+
+func (e PasswordResetRequested) EventType() string { return "PasswordResetRequested" }
+func (e PasswordResetRequested) EventID() string   { return e.ID }
+func (e PasswordResetRequested) Timestamp() int64  { return e.CreatedAt }
+
+// EmailVerificationRequested event is emitted when email verification is requested
+type EmailVerificationRequested struct {
+	ID        string
+	UserID    string
+	Email     string
+	Token     string
+	CreatedAt int64
+}
+
+func (e EmailVerificationRequested) EventType() string { return "EmailVerificationRequested" }
+func (e EmailVerificationRequested) EventID() string   { return e.ID }
+func (e EmailVerificationRequested) Timestamp() int64  { return e.CreatedAt }

@@ -53,7 +53,7 @@ func (ac *AuthController) VerifyToken(c *gin.Context) {
 	// Set user context headers for downstream services
 	c.Header("X-User-ID", claims.UserID)
 	c.Header("X-User-Email", claims.Email)
-	c.Header("X-User-Roles", strings.Join(claims.Roles, ","))
+	c.Header("X-User-Role", strings.Join(claims.Roles, ","))
 	
 	c.Status(http.StatusOK)
 }
@@ -153,27 +153,49 @@ func (ac *AuthController) Logout(c *gin.Context) {
 
 // ForgotPassword handles password reset requests
 func (ac *AuthController) ForgotPassword(c *gin.Context) {
-	// TODO: Implement forgot password logic
-	// 1. Extract email from request
-	// 2. Generate reset token
-	// 3. Send reset email
-	// 4. Return success response
-	
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"message": "Forgot password endpoint not implemented yet",
+	var req service.ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Initiate password reset
+	if err := ac.authService.ForgotPassword(&req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to process password reset request",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "If the email exists, a password reset link has been sent",
 	})
 }
 
 // ResetPassword handles password reset with token
 func (ac *AuthController) ResetPassword(c *gin.Context) {
-	// TODO: Implement reset password logic
-	// 1. Extract token and new password
-	// 2. Validate reset token
-	// 3. Update user password
-	// 4. Return success response
-	
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"message": "Reset password endpoint not implemented yet",
+	var req service.ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Reset password
+	if err := ac.authService.ResetPassword(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Password reset successfully",
 	})
 }
 
@@ -188,13 +210,17 @@ func (ac *AuthController) GetProfile(c *gin.Context) {
 		return
 	}
 
-	// TODO: Implement get profile logic
-	// 1. Fetch user from database using userID
-	// 2. Return user profile (without sensitive data)
-	
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"message": "Get profile endpoint not implemented yet",
-		"user_id": userID,
+	// Get user profile
+	profile, err := ac.authService.GetProfile(userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": profile,
 	})
 }
 
@@ -209,14 +235,26 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// TODO: Implement update profile logic
-	// 1. Extract profile data from request
-	// 2. Validate data
-	// 3. Update user in database
-	// 4. Return updated profile
-	
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"message": "Update profile endpoint not implemented yet",
-		"user_id": userID,
+	var req service.UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Update user profile
+	profile, err := ac.authService.UpdateProfile(userID, &req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": profile,
+		"message": "Profile updated successfully",
 	})
 }

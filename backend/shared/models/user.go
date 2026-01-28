@@ -7,6 +7,14 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserRole enum type
+type UserRole string
+
+const (
+	UserRoleUser  UserRole = "user"
+	UserRoleAdmin UserRole = "admin"
+)
+
 // User represents a user in the system
 type User struct {
 	ID              uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
@@ -18,11 +26,11 @@ type User struct {
 	Phone           string    `gorm:"size:20" json:"phone"`
 	EmailVerified   bool      `gorm:"default:false" json:"email_verified"`
 	PhoneVerified   bool      `gorm:"default:false" json:"phone_verified"`
+	Role            UserRole  `gorm:"type:user_role;default:user" json:"role"`
 	CreatedAt       time.Time `gorm:"not null" json:"created_at"`
 	UpdatedAt       time.Time `gorm:"not null" json:"updated_at"`
 	
 	// Relationships
-	Roles    []Role    `gorm:"many2many:user_roles;" json:"roles,omitempty"`
 	Sessions []Session `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
 }
 
@@ -34,35 +42,30 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// Role represents a user role
-type Role struct {
-	ID          uuid.UUID              `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	Name        string                 `gorm:"uniqueIndex;not null;size:50" json:"name"`
-	Description string                 `gorm:"size:255" json:"description"`
-	Permissions map[string]interface{} `gorm:"type:jsonb" json:"permissions"`
-	CreatedAt   time.Time              `gorm:"not null" json:"created_at"`
+// PasswordResetToken represents a password reset token
+type PasswordResetToken struct {
+	ID        uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null;index" json:"user_id"`
+	TokenHash string    `gorm:"uniqueIndex;not null;size:255" json:"-"`
+	ExpiresAt time.Time `gorm:"not null" json:"expires_at"`
+	Used      bool      `gorm:"default:false" json:"used"`
+	CreatedAt time.Time `gorm:"not null" json:"created_at"`
 	
 	// Relationships
-	Users []User `gorm:"many2many:user_roles;" json:"-"`
+	User User `gorm:"constraint:OnDelete:CASCADE"`
 }
 
-// BeforeCreate sets UUID before creating role
-func (r *Role) BeforeCreate(tx *gorm.DB) error {
-	if r.ID == uuid.Nil {
-		r.ID = uuid.New()
+// BeforeCreate sets UUID before creating password reset token
+func (p *PasswordResetToken) BeforeCreate(tx *gorm.DB) error {
+	if p.ID == uuid.Nil {
+		p.ID = uuid.New()
 	}
 	return nil
 }
 
-// UserRole represents the many-to-many relationship between users and roles
-type UserRole struct {
-	UserID     uuid.UUID `gorm:"type:uuid;primaryKey" json:"user_id"`
-	RoleID     uuid.UUID `gorm:"type:uuid;primaryKey" json:"role_id"`
-	AssignedAt time.Time `gorm:"not null;default:CURRENT_TIMESTAMP" json:"assigned_at"`
-	
-	// Relationships
-	User User `gorm:"constraint:OnDelete:CASCADE"`
-	Role Role `gorm:"constraint:OnDelete:CASCADE"`
+// IsExpired checks if the token has expired
+func (p *PasswordResetToken) IsExpired() bool {
+	return time.Now().After(p.ExpiresAt)
 }
 
 // Session represents a user session

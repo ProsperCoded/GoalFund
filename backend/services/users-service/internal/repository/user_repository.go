@@ -3,9 +3,10 @@ package repository
 import (
 	"errors"
 	"strings"
+	"time"
 
-	"github.com/google/uuid"
 	"github.com/gofund/shared/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -39,7 +40,7 @@ func (r *UserRepository) CreateUser(user *models.User) error {
 // GetUserByID retrieves a user by ID
 func (r *UserRepository) GetUserByID(id uuid.UUID) (*models.User, error) {
 	var user models.User
-	if err := r.db.Preload("Roles").First(&user, "id = ?", id).Error; err != nil {
+	if err := r.db.First(&user, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
 		}
@@ -51,7 +52,7 @@ func (r *UserRepository) GetUserByID(id uuid.UUID) (*models.User, error) {
 // GetUserByEmail retrieves a user by email
 func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
-	if err := r.db.Preload("Roles").First(&user, "email = ?", email).Error; err != nil {
+	if err := r.db.First(&user, "email = ?", email).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
 		}
@@ -63,7 +64,7 @@ func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 // GetUserByUsername retrieves a user by username
 func (r *UserRepository) GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
-	if err := r.db.Preload("Roles").First(&user, "username = ?", username).Error; err != nil {
+	if err := r.db.First(&user, "username = ?", username).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
 		}
@@ -107,41 +108,31 @@ func (r *UserRepository) UsernameExists(username string) (bool, error) {
 	return count > 0, nil
 }
 
-// GetUserRoles retrieves user roles as string slice
-func (r *UserRepository) GetUserRoles(userID uuid.UUID) ([]string, error) {
-	var roles []string
-	if err := r.db.Table("roles").
-		Select("roles.name").
-		Joins("JOIN user_roles ON user_roles.role_id = roles.id").
-		Where("user_roles.user_id = ?", userID).
-		Pluck("name", &roles).Error; err != nil {
-		return nil, err
-	}
-	return roles, nil
+// CreatePasswordResetToken creates a new password reset token
+func (r *UserRepository) CreatePasswordResetToken(token *models.PasswordResetToken) error {
+	return r.db.Create(token).Error
 }
 
-// AssignRole assigns a role to a user
-func (r *UserRepository) AssignRole(userID, roleID uuid.UUID) error {
-	userRole := models.UserRole{
-		UserID: userID,
-		RoleID: roleID,
-	}
-	return r.db.Create(&userRole).Error
-}
-
-// RemoveRole removes a role from a user
-func (r *UserRepository) RemoveRole(userID, roleID uuid.UUID) error {
-	return r.db.Where("user_id = ? AND role_id = ?", userID, roleID).Delete(&models.UserRole{}).Error
-}
-
-// GetRoleByName retrieves a role by name
-func (r *UserRepository) GetRoleByName(name string) (*models.Role, error) {
-	var role models.Role
-	if err := r.db.First(&role, "name = ?", name).Error; err != nil {
+// GetPasswordResetToken retrieves a password reset token by token hash
+func (r *UserRepository) GetPasswordResetToken(tokenHash string) (*models.PasswordResetToken, error) {
+	var token models.PasswordResetToken
+	if err := r.db.First(&token, "token_hash = ? AND used = false", tokenHash).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("role not found")
+			return nil, errors.New("token not found")
 		}
 		return nil, err
 	}
-	return &role, nil
+	return &token, nil
+}
+
+// MarkPasswordResetTokenUsed marks a password reset token as used
+func (r *UserRepository) MarkPasswordResetTokenUsed(tokenHash string) error {
+	return r.db.Model(&models.PasswordResetToken{}).
+		Where("token_hash = ?", tokenHash).
+		Update("used", true).Error
+}
+
+// DeleteExpiredPasswordResetTokens deletes expired password reset tokens
+func (r *UserRepository) DeleteExpiredPasswordResetTokens() error {
+	return r.db.Where("expires_at < ?", time.Now()).Delete(&models.PasswordResetToken{}).Error
 }

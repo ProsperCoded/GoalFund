@@ -58,9 +58,8 @@ func AutoMigrate(db *gorm.DB) error {
 	// User service models
 	if err := db.AutoMigrate(
 		&models.User{},
-		&models.Role{},
-		&models.UserRole{},
 		&models.Session{},
+		&models.PasswordResetToken{},
 	); err != nil {
 		return fmt.Errorf("failed to migrate user models: %w", err)
 	}
@@ -89,57 +88,7 @@ func AutoMigrate(db *gorm.DB) error {
 	return nil
 }
 
-// CreateDefaultRoles creates default system roles
-func CreateDefaultRoles(db *gorm.DB) error {
-	defaultRoles := []models.Role{
-		{
-			Name:        "user",
-			Description: "Standard user role",
-			Permissions: map[string]interface{}{
-				"goals.create": true,
-				"goals.view":   true,
-				"goals.update": "own",
-				"payments.create": true,
-				"profile.view": "own",
-				"profile.update": "own",
-			},
-		},
-		{
-			Name:        "admin",
-			Description: "Administrator role with full access",
-			Permissions: map[string]interface{}{
-				"*": true, // Full access
-			},
-		},
-		{
-			Name:        "moderator",
-			Description: "Moderator role for community management",
-			Permissions: map[string]interface{}{
-				"goals.view":   true,
-				"goals.moderate": true,
-				"proofs.verify": true,
-				"users.view": true,
-			},
-		},
-	}
 
-	for _, role := range defaultRoles {
-		var existingRole models.Role
-		if err := db.Where("name = ?", role.Name).First(&existingRole).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				// Role doesn't exist, create it
-				if err := db.Create(&role).Error; err != nil {
-					return fmt.Errorf("failed to create role %s: %w", role.Name, err)
-				}
-				log.Printf("Created default role: %s", role.Name)
-			} else {
-				return fmt.Errorf("failed to check role %s: %w", role.Name, err)
-			}
-		}
-	}
-
-	return nil
-}
 
 // SetupDatabase initializes the database with migrations and default data
 func SetupDatabase(cfg Config) (*gorm.DB, error) {
@@ -153,10 +102,7 @@ func SetupDatabase(cfg Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	// Create default roles
-	if err := CreateDefaultRoles(db); err != nil {
-		return nil, err
-	}
+
 
 	return db, nil
 }

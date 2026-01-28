@@ -11,14 +11,9 @@ WORKDIR /app
 ARG APP_NAME
 ENV APP_NAME=${APP_NAME}
 
-# Copy workspace and module files first (for dependency caching)
-COPY go.work go.work
-COPY shared/go.mod ./shared/
-COPY services/users-service/go.mod ./services/users-service/
-COPY services/goals-service/go.mod ./services/goals-service/
-COPY services/ledger-service/go.mod ./services/ledger-service/
-COPY services/payments-service/go.mod ./services/payments-service/
-COPY services/notifications-service/go.mod ./services/notifications-service/
+# Copy module files first (for dependency caching)
+COPY shared/go.mod shared/go.sum ./shared/
+COPY services/${APP_NAME}/go.mod services/${APP_NAME}/go.sum ./services/${APP_NAME}/
 
 # Download dependencies (this layer will be cached unless go.mod changes)
 WORKDIR /app/services/${APP_NAME}

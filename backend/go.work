@@ -1,11 +1,10 @@
 go 1.21
 
 use (
-	./shared
-	./services/payments-service
-	./services/ledger-service
 	./services/goals-service
-	./services/users-service
+	./services/ledger-service
 	./services/notifications-service
+	./services/payments-service
+	./services/users-service
+	./shared
 )
- 

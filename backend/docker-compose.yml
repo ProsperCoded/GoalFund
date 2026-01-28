@@ -87,7 +87,7 @@ services:
 
   # MongoDB for Payments Service
   mongodb-payments:
-    image: mongo:7
+    image: mongo:latest
     container_name: gofund-mongodb-payments
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin

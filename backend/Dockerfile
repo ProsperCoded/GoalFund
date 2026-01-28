@@ -24,9 +24,9 @@ WORKDIR /app
 COPY shared/ ./shared/
 COPY services/${APP_NAME}/ ./services/${APP_NAME}/
 
-# Build the specific service
+# Build the specific service with optimized flags
 WORKDIR /app/services/${APP_NAME}
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o main ./cmd/main.go
 
 # Final stage
 FROM alpine:latest

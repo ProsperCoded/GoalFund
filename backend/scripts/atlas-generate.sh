@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Atlas migration generation script for GoFund
+# Atlas migration generation script for GoalFund
 
 set -e
 
-echo "🚀 Generating Atlas migrations for GoFund..."
+echo "🚀 Generating Atlas migrations for GoalFund..."
 
 # Check if Atlas is installed
 if ! command -v atlas &> /dev/null; then

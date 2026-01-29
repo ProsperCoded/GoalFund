@@ -5,9 +5,14 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file if it exists (for local development)
+	if err := godotenv.Load(); err != nil {
+		log.Printf("No .env file found, using system environment variables")
+	}
 	// Initialize router
 	r := gin.Default()
 

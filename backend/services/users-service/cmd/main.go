@@ -13,10 +13,15 @@ import (
 	"github.com/gofund/users-service/internal/repository"
 	"github.com/gofund/users-service/internal/router"
 	"github.com/gofund/users-service/internal/service"
+	"github.com/joho/godotenv"
 	"gorm.io/gorm/logger"
 )
 
 func main() {
+	// Load .env file if it exists (for local development)
+	if err := godotenv.Load(); err != nil {
+		log.Printf("No .env file found, using system environment variables")
+	}
 	// Initialize database
 	dbConfig := database.Config{
 		Host:     getEnv("USERS_DB_HOST", "localhost"),

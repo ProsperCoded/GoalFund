@@ -51,6 +51,45 @@ func NewGormDB(cfg Config) (*gorm.DB, error) {
 	return db, nil
 }
 
+// createEnumTypes creates PostgreSQL enum types required by the models before migration
+func createEnumTypes(db *gorm.DB) error {
+	log.Println("Creating enum types...")
+	
+	sqlDB, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get underlying sql.DB: %w", err)
+	}
+
+	// Create user_role enum if it doesn't exist
+	// Using DO block to check existence and create atomically
+	query := `
+		DO $$ 
+		BEGIN
+			IF NOT EXISTS (
+				SELECT 1 FROM pg_type 
+				WHERE typname = 'user_role'
+			) THEN
+				CREATE TYPE user_role AS ENUM ('user', 'admin');
+			END IF;
+		END $$;
+	`
+	
+	if _, err := sqlDB.Exec(query); err != nil {
+		// Check if enum already exists (handles race conditions or if it was created manually)
+		var exists bool
+		checkQuery := `SELECT EXISTS(SELECT 1 FROM pg_type WHERE typname = 'user_role')`
+		if checkErr := sqlDB.QueryRow(checkQuery).Scan(&exists); checkErr == nil && exists {
+			log.Println("Enum user_role already exists, continuing...")
+			return nil
+		}
+		// If enum doesn't exist and creation failed, return error
+		return fmt.Errorf("failed to create user_role enum: %w", err)
+	}
+
+	log.Println("Enum types created successfully")
+	return nil
+}
+
 // AutoMigrate runs GORM auto-migration for all models
 func AutoMigrate(db *gorm.DB) error {
 	log.Println("Running GORM auto-migration...")
@@ -95,6 +134,11 @@ func SetupDatabase(cfg Config) (*gorm.DB, error) {
 	db, err := NewGormDB(cfg)
 	if err != nil {
 		return nil, err
+	}
+
+	// Create enum types before running migrations (GORM doesn't create enums automatically)
+	if err := createEnumTypes(db); err != nil {
+		return nil, fmt.Errorf("failed to create enum types: %w", err)
 	}
 
 	// Run auto-migration

@@ -404,47 +404,59 @@ func (s *AuthService) hashToken(token string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-// mapUserToResponse maps user model to user response DTO
-func mapUserToResponse(user *models.User) *dto.UserResponse {
-	if user == nil {
-		return nil
-	}
-	return &dto.UserResponse{
-		ID:            user.ID.String(),
-		Email:         user.Email,
-		Username:      user.Username,
-		FirstName:     user.FirstName,
-		LastName:      user.LastName,
-		Phone:         user.Phone,
-		EmailVerified: user.EmailVerified,
-		PhoneVerified: user.PhoneVerified,
-		KYCVerified:   user.KYCVerified,
-		KYCVerifiedAt: user.KYCVerifiedAt,
-		Role:          user.Role,
-		CreatedAt:     user.CreatedAt,
-	}
-}
 
 // SetPassword handles first-time password setup
-func (s *AuthService) SetPassword(req *dto.SetPasswordRequest) error {
+func (s *AuthService) SetPassword(req *dto.SetPasswordRequest) (*dto.AuthResponse, error) {
 	user, err := s.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
-		return errors.New("user not found")
+		return nil, errors.New("user not found")
 	}
 
 	if user.HasSetPassword {
-		return errors.New("password already set")
+		return nil, errors.New("password already set")
 	}
 
 	hashedPassword, err := password.HashPassword(req.Password, nil)
 	if err != nil {
-		return errors.New("failed to process password")
+		return nil, errors.New("failed to process password")
 	}
 
 	user.PasswordHash = hashedPassword
 	user.HasSetPassword = true
 
-	return s.userRepo.UpdateUser(user)
+	if err := s.userRepo.UpdateUser(user); err != nil {
+		return nil, errors.New("failed to update user")
+	}
+
+	// Generate token pair
+	roles := []string{string(user.Role)}
+	tokenPair, err := s.jwtService.GenerateTokenPair(user.ID.String(), user.Email, roles)
+	if err != nil {
+		return nil, errors.New("failed to generate tokens")
+	}
+
+	// Create session
+	refreshTokenHash := s.hashToken(tokenPair.RefreshToken)
+	session := &models.Session{
+		UserID:    user.ID,
+		TokenHash: refreshTokenHash,
+		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
+		Metadata: map[string]interface{}{
+			"set_password_time": time.Now(),
+		},
+	}
+
+	if err := s.sessionRepo.CreateSession(session); err != nil {
+		return nil, errors.New("failed to create session")
+	}
+
+	return &dto.AuthResponse{
+		User:         mapUserToResponse(user),
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		TokenType:    tokenPair.TokenType,
+		ExpiresIn:    tokenPair.ExpiresIn,
+	}, nil
 }
 
 // UpdateProfile updates user profile

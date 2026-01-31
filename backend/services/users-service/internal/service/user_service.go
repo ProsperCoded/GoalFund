@@ -87,6 +87,9 @@ func (s *UserService) UpdateSettlementAccount(userID string, bankName, accountNu
 
 // mapUserToResponse converts user model to response (Internal helper)
 func mapUserToResponse(user *models.User) *dto.UserResponse {
+	if user == nil {
+		return nil
+	}
 	return &dto.UserResponse{
 		ID:            user.ID.String(),
 		Email:         user.Email,
@@ -102,3 +105,4 @@ func mapUserToResponse(user *models.User) *dto.UserResponse {
 		CreatedAt:     user.CreatedAt,
 	}
 }
+

@@ -8,7 +8,9 @@ import (
 	"github.com/gofund/notifications-service/internal/dto"
 	"github.com/gofund/notifications-service/internal/models"
 	"github.com/gofund/notifications-service/internal/repository"
+	shared "github.com/gofund/shared/models"
 )
+
 
 // NotificationService handles notification business logic
 type NotificationService interface {
@@ -88,15 +90,16 @@ func (s *notificationService) sendEmailNotification(notification *models.Notific
 	}
 
 	// 3. Map NotificationType to EmailType (Mapping is 1-to-1 as requested)
-	emailType := models.EmailType(notification.Type)
+	emailType := shared.EmailType(notification.Type)
 
 	// 4. Prepare Payload
-	payload := models.EmailPayload{
+	payload := shared.EmailPayload{
 		Type:      emailType,
 		Recipient: email,
 		Subject:   notification.Title,
 		Data:      notification.Data,
 	}
+
 
 	// 5. Send Email
 	if err := s.emailService.Send(payload); err != nil {

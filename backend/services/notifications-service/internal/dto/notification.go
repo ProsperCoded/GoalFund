@@ -14,24 +14,10 @@ type CreateNotificationRequest struct {
 }
 
 // UpdatePreferencesRequest represents a request to update notification preferences
-type UpdatePreferencesRequest struct {
-	EmailEnabled              *bool `json:"email_enabled"`
-	PaymentNotifications      *bool `json:"payment_notifications"`
-	ContributionNotifications *bool `json:"contribution_notifications"`
-	WithdrawalNotifications   *bool `json:"withdrawal_notifications"`
-	ProofNotifications        *bool `json:"proof_notifications"`
-	GoalNotifications         *bool `json:"goal_notifications"`
-	MarketingEmails           *bool `json:"marketing_emails"`
-}
+type UpdatePreferencesRequest = models.UpdatePreferencesRequest
 
 // ListNotificationsQuery represents query parameters for listing notifications
-type ListNotificationsQuery struct {
-	UserID   string `form:"user_id"`
-	IsRead   *bool  `form:"is_read"`
-	Type     string `form:"type"`
-	Page     int    `form:"page"`
-	PageSize int    `form:"page_size"`
-}
+type ListNotificationsQuery = models.ListNotificationsQuery
 
 // PaginatedNotifications represents paginated notification results
 type PaginatedNotifications struct {

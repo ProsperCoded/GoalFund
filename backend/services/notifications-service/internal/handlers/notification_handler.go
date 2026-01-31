@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofund/notifications-service/internal/dto"
-	"github.com/gofund/notifications-service/internal/models"
 	"github.com/gofund/notifications-service/internal/service"
 )
 

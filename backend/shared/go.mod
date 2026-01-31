@@ -6,6 +6,8 @@ require (
 	github.com/DataDog/datadog-go/v5 v5.6.0
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/google/uuid v1.6.0
+	github.com/jmoiron/sqlx v1.3.5
+	github.com/lib/pq v1.10.2
 	github.com/streadway/amqp v1.1.0
 	go.mongodb.org/mongo-driver v1.17.8
 	golang.org/x/crypto v0.47.0
@@ -23,7 +25,7 @@ require (
 	github.com/DataDog/datadog-agent/pkg/util/log v0.67.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/util/scrubber v0.67.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/version v0.67.0 // indirect
-	github.com/DataDog/datadog-go/v5 v5.6.0 // indirect
+	github.com/DataDog/dd-trace-go/contrib/gorm.io/gorm.v1/v2 v2.3.0 // indirect
 	github.com/DataDog/dd-trace-go/v2 v2.3.0 // indirect
 	github.com/DataDog/go-libddwaf/v4 v4.3.2 // indirect
 	github.com/DataDog/go-runtime-metrics-internal v0.0.4-0.20250721125240-fdf1ef85b633 // indirect
@@ -109,5 +111,4 @@ require (
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
-	gopkg.in/DataDog/dd-trace-go.v1 v1.74.8
 )

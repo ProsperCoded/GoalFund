@@ -7,6 +7,8 @@ import (
 	"github.com/gofund/goals-service/internal/dto"
 	"github.com/gofund/goals-service/internal/repository"
 	"github.com/gofund/shared/models"
+	"github.com/gofund/shared/events"
+	"github.com/gofund/shared/messaging"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -220,12 +222,13 @@ func (s *WithdrawalService) GetWithdrawalsByGoal(goalID uuid.UUID) ([]models.Wit
 
 // ProofService handles business logic for proofs
 type ProofService struct {
-	repo *repository.Repository
+	repo      *repository.Repository
+	publisher messaging.Publisher
 }
 
 // NewProofService creates a new proof service
-func NewProofService(repo *repository.Repository) *ProofService {
-	return &ProofService{repo: repo}
+func NewProofService(repo *repository.Repository, publisher messaging.Publisher) *ProofService {
+	return &ProofService{repo: repo, publisher: publisher}
 }
 
 // CreateProof creates a new proof
@@ -269,6 +272,17 @@ func (s *ProofService) CreateProof(userID uuid.UUID, req dto.CreateProofRequest)
 		return nil, err
 	}
 
+	// Emit event
+	if s.publisher != nil {
+		event := events.ProofSubmitted{
+			ID:        uuid.New().String(),
+			GoalID:    proof.GoalID.String(),
+			ProofID:   proof.ID.String(),
+			CreatedAt: time.Now().Unix(),
+		}
+		s.publisher.Publish("ProofSubmitted", event)
+	}
+
 	return proof, nil
 }
 
@@ -291,12 +305,13 @@ func (s *ProofService) GetProofsByGoal(goalID uuid.UUID) ([]models.Proof, error)
 
 // VoteService handles business logic for votes
 type VoteService struct {
-	repo *repository.Repository
+	repo      *repository.Repository
+	publisher messaging.Publisher
 }
 
 // NewVoteService creates a new vote service
-func NewVoteService(repo *repository.Repository) *VoteService {
-	return &VoteService{repo: repo}
+func NewVoteService(repo *repository.Repository, publisher messaging.Publisher) *VoteService {
+	return &VoteService{repo: repo, publisher: publisher}
 }
 
 // CreateVote creates a new vote or updates existing
@@ -346,7 +361,45 @@ func (s *VoteService) CreateVote(userID uuid.UUID, req dto.CreateVoteRequest) (*
 		return nil, err
 	}
 
+	// Check if proof is now verified
+	go s.checkProofVerification(proof.GoalID, req.ProofID)
+
 	return vote, nil
+}
+
+func (s *VoteService) checkProofVerification(goalID, proofID uuid.UUID) {
+	_, satisfied, err := s.repo.Vote.GetVoteStats(proofID)
+	if err != nil {
+		return
+	}
+
+	contributorCount, err := s.repo.Goal.GetContributorCount(goalID)
+	if err != nil {
+		return
+	}
+
+	// Threshold: max(3, 5% of contributors)
+	threshold := int64(3)
+	fivePercent := int64(float64(contributorCount) * 0.05)
+	if fivePercent > threshold {
+		threshold = fivePercent
+	}
+
+	if satisfied >= threshold {
+		// Proof is verified!
+		// Update goal status if needed? Or just emit event.
+		// Usually Goal status updates to VERIFIED.
+		
+		if s.publisher != nil {
+			event := events.ProofVerified{
+				ID:        uuid.New().String(),
+				GoalID:    goalID.String(),
+				ProofID:   proofID.String(),
+				CreatedAt: time.Now().Unix(),
+			}
+			s.publisher.Publish("ProofVerified", event)
+		}
+	}
 }
 
 // GetVotesByProof retrieves all votes for a proof

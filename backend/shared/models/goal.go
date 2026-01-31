@@ -11,9 +11,13 @@ import (
 type GoalStatus string
 
 const (
-	GoalStatusOpen      GoalStatus = "OPEN"
-	GoalStatusClosed    GoalStatus = "CLOSED"
-	GoalStatusCancelled GoalStatus = "CANCELLED"
+	GoalStatusOpen           GoalStatus = "OPEN"
+	GoalStatusFunded         GoalStatus = "FUNDED"
+	GoalStatusWithdrawn      GoalStatus = "WITHDRAWN"
+	GoalStatusProofSubmitted GoalStatus = "PROOF_SUBMITTED"
+	GoalStatusVerified       GoalStatus = "VERIFIED"
+	GoalStatusClosed         GoalStatus = "CLOSED"
+	GoalStatusCancelled      GoalStatus = "CANCELLED"
 )
 
 // Goal represents a funding goal with milestone support

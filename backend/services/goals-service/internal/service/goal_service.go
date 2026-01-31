@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/gofund/goals-service/internal/dto"
@@ -50,9 +49,9 @@ func (s *GoalService) CreateGoal(ownerID uuid.UUID, req dto.CreateGoalRequest) (
 		Currency:      req.Currency,
 		Deadline:      req.Deadline,
 		Status:        models.GoalStatusOpen,
-		BankName:      req.BankName,
-		AccountNumber: req.AccountNumber,
-		AccountName:   req.AccountName,
+		DepositBankName:      req.BankName,
+		DepositAccountNumber: req.AccountNumber,
+		DepositAccountName:   req.AccountName,
 	}
 
 	if err := s.repo.Goal.CreateGoal(goal); err != nil {
@@ -118,13 +117,13 @@ func (s *GoalService) UpdateGoal(goalID, userID uuid.UUID, req dto.UpdateGoalReq
 		goal.Description = *req.Description
 	}
 	if req.BankName != nil {
-		goal.BankName = *req.BankName
+		goal.DepositBankName = *req.BankName
 	}
 	if req.AccountNumber != nil {
-		goal.AccountNumber = *req.AccountNumber
+		goal.DepositAccountNumber = *req.AccountNumber
 	}
 	if req.AccountName != nil {
-		goal.AccountName = *req.AccountName
+		goal.DepositAccountName = *req.AccountName
 	}
 
 	if err := s.repo.Goal.UpdateGoal(goal); err != nil {

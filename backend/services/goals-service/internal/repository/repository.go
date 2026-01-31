@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-	"time"
 
 	"github.com/gofund/shared/models"
 	"github.com/google/uuid"

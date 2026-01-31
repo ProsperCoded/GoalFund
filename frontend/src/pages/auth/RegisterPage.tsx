@@ -7,11 +7,13 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  Target,
   Github,
   Loader2,
   User,
   CheckCircle2,
+  Target,
+  Users,
+  Banknote,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,7 +24,6 @@ import {
   GradientText,
   FadeIn,
   BlurText,
-  AuroraBackground,
   StaggerContainer,
   StaggerItem,
 } from "@/components/animations"
@@ -56,54 +57,85 @@ export function RegisterPage() {
     }, 1500)
   }
 
-  const benefits = [
-    "Create unlimited funding goals",
-    "Track contributions in real-time",
-    "Withdraw funds anytime",
-    "Community voting & verification",
-    "Bank-level security",
-    "24/7 customer support",
+  const features = [
+    { 
+      icon: Target, 
+      title: "Create Goals",
+      description: "Set up funding goals with milestones and track progress" 
+    },
+    { 
+      icon: Users, 
+      title: "Collect Contributions",
+      description: "Contributors can fund with just an email—no signup needed" 
+    },
+    { 
+      icon: Banknote, 
+      title: "Withdraw Anytime",
+      description: "Access funds when you need them with full audit trail" 
+    },
   ]
 
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Visual */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden">
-        <AuroraBackground />
+      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-card border-r border-border/50">
+        {/* Subtle grid */}
+        <div className="absolute inset-0 opacity-[0.03]">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `linear-gradient(rgba(212, 168, 83, 0.5) 1px, transparent 1px),
+                             linear-gradient(90deg, rgba(212, 168, 83, 0.5) 1px, transparent 1px)`,
+            backgroundSize: '40px 40px'
+          }} />
+        </div>
+        
+        {/* Corner accents */}
+        <div className="absolute top-8 right-8 w-16 h-16 border-t border-r border-primary/20" />
+        <div className="absolute bottom-8 left-8 w-16 h-16 border-b border-l border-primary/20" />
+        
         <div className="relative z-10 flex items-center justify-center w-full p-12">
           <FadeIn direction="right">
-            <div className="max-w-lg">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", delay: 0.3 }}
-                className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-8 mx-auto"
-              >
-                <Target className="w-10 h-10 text-white" />
-              </motion.div>
-              <h2 className="text-3xl font-bold text-center mb-4">
-                Start Your{" "}
-                <GradientText text="Journey" />
-              </h2>
-              <p className="text-muted-foreground text-center mb-8">
-                Join the most trusted platform for community-driven funding.
-                Your goals, our mission.
-              </p>
+            <div className="max-w-md">
+              <div className="mb-10">
+                <h2 className="text-2xl font-bold mb-4">
+                  Start Funding <GradientText text="Big Goals" />
+                </h2>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Create goals for community projects, group contributions, and large-scale 
+                  funding with complete accountability.
+                </p>
+              </div>
 
-              {/* Benefits List */}
-              <StaggerContainer className="glass rounded-2xl p-6" staggerDelay={0.1}>
-                <h3 className="font-semibold mb-4">What you'll get:</h3>
-                <ul className="space-y-3">
-                  {benefits.map((benefit) => (
-                    <StaggerItem key={benefit}>
-                      <li className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-                        {benefit}
-                      </li>
+              {/* Features */}
+              <StaggerContainer className="space-y-4" staggerDelay={0.1}>
+                {features.map((feature) => {
+                  const Icon = feature.icon
+                  return (
+                    <StaggerItem key={feature.title}>
+                      <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg border border-border/50">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Icon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-sm mb-1">{feature.title}</h3>
+                          <p className="text-xs text-muted-foreground">{feature.description}</p>
+                        </div>
+                      </div>
                     </StaggerItem>
-                  ))}
-                </ul>
+                  )
+                })}
               </StaggerContainer>
+
+              {/* Trust line */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="mt-10 pt-6 border-t border-border/50"
+              >
+                <p className="text-xs text-muted-foreground text-center">
+                  Ledger-backed accounting • Verified payments • Complete transparency
+                </p>
+              </motion.div>
             </div>
           </FadeIn>
         </div>
@@ -118,14 +150,10 @@ export function RegisterPage() {
           className="w-full max-w-md"
         >
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 mb-8">
-            <motion.div
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center"
-            >
-              <Target className="w-6 h-6 text-white" />
-            </motion.div>
+          <Link to="/" className="flex items-center gap-2.5 mb-10">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <span className="text-primary font-bold text-sm">G</span>
+            </div>
             <span className="text-xl font-bold">
               <GradientText text="GoFund" />
             </span>
@@ -137,13 +165,13 @@ export function RegisterPage() {
               <BlurText text="Create your account" />
             </h1>
             <p className="text-muted-foreground">
-              Start funding and achieving goals today
+              Get started with transparent group funding
             </p>
           </div>
 
           {/* Social Login */}
           <div className="space-y-3 mb-6">
-            <Button variant="outline" className="w-full gap-2" type="button">
+            <Button variant="outline" className="w-full gap-2 border-border/50 hover:bg-muted/50" type="button">
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -164,23 +192,23 @@ export function RegisterPage() {
               </svg>
               Continue with Google
             </Button>
-            <Button variant="outline" className="w-full gap-2" type="button">
+            <Button variant="outline" className="w-full gap-2 border-border/50 hover:bg-muted/50" type="button">
               <Github className="w-5 h-5" />
               Continue with GitHub
             </Button>
           </div>
 
           <div className="relative mb-6">
-            <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-sm text-muted-foreground">
-              or continue with email
+            <Separator className="bg-border/50" />
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground uppercase tracking-wider">
+              or
             </span>
           </div>
 
           {/* Register Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name" className="text-sm">Full Name</Label>
               <Input
                 id="name"
                 type="text"
@@ -191,11 +219,12 @@ export function RegisterPage() {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 required
+                className="bg-muted/30 border-border/50 focus:border-primary/50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -206,11 +235,12 @@ export function RegisterPage() {
                   setFormData({ ...formData, email: e.target.value })
                 }
                 required
+                className="bg-muted/30 border-border/50 focus:border-primary/50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -222,6 +252,7 @@ export function RegisterPage() {
                     setFormData({ ...formData, password: e.target.value })
                   }
                   required
+                  className="bg-muted/30 border-border/50 focus:border-primary/50"
                 />
                 <button
                   type="button"
@@ -271,7 +302,7 @@ export function RegisterPage() {
                 }
                 className="mt-0.5"
               />
-              <Label htmlFor="terms" className="text-sm cursor-pointer leading-tight">
+              <Label htmlFor="terms" className="text-sm cursor-pointer leading-tight text-muted-foreground">
                 I agree to the{" "}
                 <Link to="/terms" className="text-primary hover:underline">
                   Terms of Service
@@ -285,9 +316,8 @@ export function RegisterPage() {
 
             <Button
               type="submit"
-              variant="gradient"
               size="lg"
-              className="w-full gap-2"
+              className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={isLoading || !formData.acceptTerms}
             >
               {isLoading ? (
@@ -305,7 +335,7 @@ export function RegisterPage() {
           </form>
 
           {/* Sign In Link */}
-          <p className="mt-6 text-center text-muted-foreground">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link to="/login" className="text-primary hover:underline font-medium">
               Sign in

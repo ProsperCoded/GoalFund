@@ -6,33 +6,35 @@ interface GradientTextProps {
   from?: string
   via?: string
   to?: string
+  animate?: boolean
 }
 
 export function GradientText({
   text,
   className = "",
-  from = "#10b981",
-  via = "#f59e0b",
-  to = "#10b981",
+  from = "#f5d78e",
+  via = "#d4a853",
+  to = "#b8942e",
+  animate = false,
 }: GradientTextProps) {
   return (
     <motion.span
       className={`inline-block ${className}`}
       style={{
         background: `linear-gradient(135deg, ${from} 0%, ${via} 50%, ${to} 100%)`,
-        backgroundSize: "200% auto",
+        backgroundSize: animate ? "200% auto" : "100% auto",
         WebkitBackgroundClip: "text",
         WebkitTextFillColor: "transparent",
         backgroundClip: "text",
       }}
-      animate={{
+      animate={animate ? {
         backgroundPosition: ["0% center", "200% center", "0% center"],
-      }}
-      transition={{
+      } : undefined}
+      transition={animate ? {
         duration: 4,
         ease: "linear",
         repeat: Infinity,
-      }}
+      } : undefined}
     >
       {text}
     </motion.span>

@@ -7,9 +7,10 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  Target,
   Github,
   Loader2,
+  BookOpen,
+  ShieldCheck,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,7 +21,6 @@ import {
   GradientText,
   FadeIn,
   BlurText,
-  AuroraBackground,
 } from "@/components/animations"
 
 export function LoginPage() {
@@ -55,14 +55,10 @@ export function LoginPage() {
           className="w-full max-w-md"
         >
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 mb-8">
-            <motion.div
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center"
-            >
-              <Target className="w-6 h-6 text-white" />
-            </motion.div>
+          <Link to="/" className="flex items-center gap-2.5 mb-10">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <span className="text-primary font-bold text-sm">G</span>
+            </div>
             <span className="text-xl font-bold">
               <GradientText text="GoFund" />
             </span>
@@ -74,13 +70,13 @@ export function LoginPage() {
               <BlurText text="Welcome back" />
             </h1>
             <p className="text-muted-foreground">
-              Sign in to continue funding your goals
+              Sign in to manage your goals and contributions
             </p>
           </div>
 
           {/* Social Login */}
           <div className="space-y-3 mb-6">
-            <Button variant="outline" className="w-full gap-2" type="button">
+            <Button variant="outline" className="w-full gap-2 border-border/50 hover:bg-muted/50" type="button">
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -101,23 +97,23 @@ export function LoginPage() {
               </svg>
               Continue with Google
             </Button>
-            <Button variant="outline" className="w-full gap-2" type="button">
+            <Button variant="outline" className="w-full gap-2 border-border/50 hover:bg-muted/50" type="button">
               <Github className="w-5 h-5" />
               Continue with GitHub
             </Button>
           </div>
 
           <div className="relative mb-6">
-            <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-sm text-muted-foreground">
-              or continue with email
+            <Separator className="bg-border/50" />
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground uppercase tracking-wider">
+              or
             </span>
           </div>
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -128,15 +124,16 @@ export function LoginPage() {
                   setFormData({ ...formData, email: e.target.value })
                 }
                 required
+                className="bg-muted/30 border-border/50 focus:border-primary/50"
               />
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-sm">Password</Label>
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-primary hover:underline"
+                  className="text-xs text-primary hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -152,6 +149,7 @@ export function LoginPage() {
                     setFormData({ ...formData, password: e.target.value })
                   }
                   required
+                  className="bg-muted/30 border-border/50 focus:border-primary/50"
                 />
                 <button
                   type="button"
@@ -175,16 +173,15 @@ export function LoginPage() {
                   setFormData({ ...formData, rememberMe: checked as boolean })
                 }
               />
-              <Label htmlFor="remember" className="text-sm cursor-pointer">
+              <Label htmlFor="remember" className="text-sm cursor-pointer text-muted-foreground">
                 Remember me for 30 days
               </Label>
             </div>
 
             <Button
               type="submit"
-              variant="gradient"
               size="lg"
-              className="w-full gap-2"
+              className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -202,59 +199,84 @@ export function LoginPage() {
           </form>
 
           {/* Sign Up Link */}
-          <p className="mt-6 text-center text-muted-foreground">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
             <Link to="/register" className="text-primary hover:underline font-medium">
-              Sign up for free
+              Create one
             </Link>
           </p>
         </motion.div>
       </div>
 
       {/* Right Side - Visual */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden">
-        <AuroraBackground />
+      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-card border-l border-border/50">
+        {/* Subtle grid */}
+        <div className="absolute inset-0 opacity-[0.03]">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `linear-gradient(rgba(212, 168, 83, 0.5) 1px, transparent 1px),
+                             linear-gradient(90deg, rgba(212, 168, 83, 0.5) 1px, transparent 1px)`,
+            backgroundSize: '40px 40px'
+          }} />
+        </div>
+        
+        {/* Corner accents */}
+        <div className="absolute top-8 left-8 w-16 h-16 border-t border-l border-primary/20" />
+        <div className="absolute bottom-8 right-8 w-16 h-16 border-b border-r border-primary/20" />
+        
         <div className="relative z-10 flex items-center justify-center w-full p-12">
           <FadeIn direction="left">
-            <div className="max-w-lg">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", delay: 0.3 }}
-                className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-8 mx-auto"
-              >
-                <Target className="w-10 h-10 text-white" />
-              </motion.div>
-              <h2 className="text-3xl font-bold text-center mb-4">
-                Fund Goals with{" "}
-                <GradientText text="Confidence" />
-              </h2>
-              <p className="text-muted-foreground text-center mb-8">
-                Join over 50,000 users who trust GoFund for transparent
-                and accountable group funding.
-              </p>
+            <div className="max-w-md">
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-4">
+                  Built for <GradientText text="Accountability" />
+                </h2>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Every contribution tracked. Every transaction verified. 
+                  Complete transparency for community funding.
+                </p>
+              </div>
 
-              {/* Testimonial */}
+              {/* Features */}
+              <div className="space-y-4 mb-8">
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg border border-border/50"
+                >
+                  <BookOpen className="w-5 h-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="font-medium text-sm">Ledger-backed Tracking</p>
+                    <p className="text-xs text-muted-foreground">Immutable records for every transaction</p>
+                  </div>
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg border border-border/50"
+                >
+                  <ShieldCheck className="w-5 h-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="font-medium text-sm">Verified Payments</p>
+                    <p className="text-xs text-muted-foreground">Paystack integration with webhook verification</p>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Quote */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="glass rounded-2xl p-6"
+                className="relative pl-4 border-l-2 border-primary/30"
               >
-                <p className="text-sm italic mb-4">
-                  "GoFund helped our community raise ₦15M for our school
-                  renovation. The transparency features gave everyone
-                  confidence their money was being used right."
+                <p className="text-sm text-muted-foreground italic mb-2">
+                  "Perfect for our community borehole project. Everyone could 
+                  see exactly where their money went."
                 </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent" />
-                  <div>
-                    <div className="font-medium text-sm">Adebayo Johnson</div>
-                    <div className="text-xs text-muted-foreground">
-                      Community Leader, Lagos
-                    </div>
-                  </div>
-                </div>
+                <p className="text-xs text-primary">— Community Project Lead</p>
               </motion.div>
             </div>
           </FadeIn>

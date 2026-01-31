@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
-import { Target, Github, Twitter, Linkedin, Mail, Heart } from "lucide-react"
+import { Github, Twitter, Linkedin, Mail, ArrowUpRight } from "lucide-react"
 import { GradientText } from "@/components/animations"
 
 export function Footer() {
@@ -11,11 +11,10 @@ export function Footer() {
       { label: "Pricing", href: "#pricing" },
       { label: "FAQ", href: "#faq" },
     ],
-    Company: [
-      { label: "About", href: "#about" },
-      { label: "Blog", href: "#blog" },
-      { label: "Careers", href: "#careers" },
-      { label: "Contact", href: "#contact" },
+    Resources: [
+      { label: "Documentation", href: "#docs" },
+      { label: "API Reference", href: "#api" },
+      { label: "Support", href: "#support" },
     ],
     Legal: [
       { label: "Privacy Policy", href: "#privacy" },
@@ -32,40 +31,35 @@ export function Footer() {
   ]
 
   return (
-    <footer className="border-t border-border bg-card/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+    <footer className="border-t border-border/50 bg-card/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <motion.div
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.5 }}
-                className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center"
-              >
-                <Target className="w-6 h-6 text-white" />
-              </motion.div>
+            <Link to="/" className="flex items-center gap-2.5 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <span className="text-primary font-bold text-sm">G</span>
+              </div>
               <span className="text-xl font-bold">
                 <GradientText text="GoFund" />
               </span>
             </Link>
-            <p className="text-muted-foreground mb-6 max-w-sm">
-              Empowering communities to achieve their goals together with transparent, 
-              secure, and accountable group funding.
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm leading-relaxed">
+              Transparent, accountable group funding for community projects 
+              and large-scale contributions. Every naira tracked.
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               {socialLinks.map((social) => {
                 const Icon = social.icon
                 return (
                   <motion.a
                     key={social.label}
                     href={social.href}
-                    whileHover={{ scale: 1.1, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+                    whileHover={{ y: -2 }}
+                    className="w-9 h-9 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-muted transition-colors border border-border/50"
                     aria-label={social.label}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4" />
                   </motion.a>
                 )
               })}
@@ -75,15 +69,16 @@ export function Footer() {
           {/* Links */}
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
-              <h3 className="font-semibold mb-4">{category}</h3>
+              <h3 className="text-sm font-medium mb-4 text-foreground/80">{category}</h3>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
                       to={link.href}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1 group"
                     >
                       {link.label}
+                      <ArrowUpRight className="w-3 h-3 opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all" />
                     </Link>
                   </li>
                 ))}
@@ -93,12 +88,12 @@ export function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-muted-foreground text-sm">
+        <div className="mt-12 pt-8 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-muted-foreground">
             © 2026 GoFund. All rights reserved.
           </p>
-          <p className="text-muted-foreground text-sm flex items-center gap-1">
-            Made with <Heart className="w-4 h-4 text-destructive fill-destructive" /> for the community
+          <p className="text-xs text-muted-foreground">
+            Built with accountability in mind
           </p>
         </div>
       </div>

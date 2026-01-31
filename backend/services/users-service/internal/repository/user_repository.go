@@ -136,3 +136,15 @@ func (r *UserRepository) MarkPasswordResetTokenUsed(tokenHash string) error {
 func (r *UserRepository) DeleteExpiredPasswordResetTokens() error {
 	return r.db.Where("expires_at < ?", time.Now()).Delete(&models.PasswordResetToken{}).Error
 }
+
+// GetUserByNIN retrieves a user by NIN (National Identification Number)
+func (r *UserRepository) GetUserByNIN(nin string) (*models.User, error) {
+	var user models.User
+	if err := r.db.First(&user, "nin = ?", nin).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+	return &user, nil
+}

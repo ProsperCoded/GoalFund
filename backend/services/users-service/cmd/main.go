@@ -95,6 +95,7 @@ func main() {
 	// Initialize services
 	eventService := service.NewEventService(publisher)
 	authService := service.NewAuthService(userRepo, sessionRepo, jwtService, eventService)
+	kycService := service.NewKYCService(userRepo, eventService)
 
 	// Start notification consumers if available
 	if consumer != nil {
@@ -117,7 +118,7 @@ func main() {
 	r.Use(gin.Recovery())
 
 	// Setup all routes
-	router.SetupRoutes(r, authService)
+	router.SetupRoutes(r, authService, kycService)
 
 	// Start server
 	port := getEnv("PORT", "8084")

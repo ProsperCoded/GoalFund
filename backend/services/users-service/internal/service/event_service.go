@@ -59,3 +59,16 @@ func (s *EventService) PublishEmailVerificationRequested(user *models.User, toke
 
 	return s.publisher.Publish("EmailVerificationRequested", event)
 }
+
+// PublishKYCVerified publishes a KYCVerified event
+func (s *EventService) PublishKYCVerified(user *models.User) error {
+	event := events.KYCVerified{
+		ID:        uuid.New().String(),
+		UserID:    user.ID.String(),
+		Email:     user.Email,
+		Username:  user.Username,
+		CreatedAt: time.Now().Unix(),
+	}
+
+	return s.publisher.Publish("KYCVerified", event)
+}

@@ -67,9 +67,12 @@ type UserResponse struct {
 	Phone         string           `json:"phone"`
 	EmailVerified bool             `json:"email_verified"`
 	PhoneVerified bool             `json:"phone_verified"`
+	KYCVerified   bool             `json:"kyc_verified"`
+	KYCVerifiedAt *time.Time       `json:"kyc_verified_at,omitempty"`
 	Role          models.UserRole  `json:"role"`
 	CreatedAt     time.Time        `json:"created_at"`
 }
+
 
 // UpdateProfileRequest represents a profile update request
 type UpdateProfileRequest struct {
@@ -156,6 +159,8 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 			Phone:         user.Phone,
 			EmailVerified: user.EmailVerified,
 			PhoneVerified: user.PhoneVerified,
+			KYCVerified:   user.KYCVerified,
+			KYCVerifiedAt: user.KYCVerifiedAt,
 			Role:          user.Role,
 			CreatedAt:     user.CreatedAt,
 		},
@@ -257,6 +262,8 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 			Phone:         user.Phone,
 			EmailVerified: user.EmailVerified,
 			PhoneVerified: user.PhoneVerified,
+			KYCVerified:   user.KYCVerified,
+			KYCVerifiedAt: user.KYCVerifiedAt,
 			Role:          user.Role,
 			CreatedAt:     user.CreatedAt,
 		},
@@ -369,6 +376,8 @@ func (s *AuthService) GetProfile(userID string) (*UserResponse, error) {
 		Phone:         user.Phone,
 		EmailVerified: user.EmailVerified,
 		PhoneVerified: user.PhoneVerified,
+		KYCVerified:   user.KYCVerified,
+		KYCVerifiedAt: user.KYCVerifiedAt,
 		Role:          user.Role,
 		CreatedAt:     user.CreatedAt,
 	}, nil
@@ -410,6 +419,8 @@ func (s *AuthService) UpdateProfile(userID string, req *UpdateProfileRequest) (*
 		Phone:         user.Phone,
 		EmailVerified: user.EmailVerified,
 		PhoneVerified: user.PhoneVerified,
+		KYCVerified:   user.KYCVerified,
+		KYCVerifiedAt: user.KYCVerifiedAt,
 		Role:          user.Role,
 		CreatedAt:     user.CreatedAt,
 	}, nil

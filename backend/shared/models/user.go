@@ -17,18 +17,24 @@ const (
 
 // User represents a user in the system
 type User struct {
-	ID              uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	Email           string    `gorm:"uniqueIndex;not null;size:255" json:"email"`
-	Username        string    `gorm:"uniqueIndex;not null;size:100" json:"username"`
-	PasswordHash    string    `gorm:"not null;size:255" json:"-"` // Never serialize password
-	FirstName       string    `gorm:"size:100" json:"first_name"`
-	LastName        string    `gorm:"size:100" json:"last_name"`
-	Phone           string    `gorm:"size:20" json:"phone"`
-	EmailVerified   bool      `gorm:"default:false" json:"email_verified"`
-	PhoneVerified   bool      `gorm:"default:false" json:"phone_verified"`
-	Role            UserRole  `gorm:"type:user_role;default:user" json:"role"`
-	CreatedAt       time.Time `gorm:"not null" json:"created_at"`
-	UpdatedAt       time.Time `gorm:"not null" json:"updated_at"`
+	ID              uuid.UUID  `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	Email           string     `gorm:"uniqueIndex;not null;size:255" json:"email"`
+	Username        string     `gorm:"uniqueIndex;not null;size:100" json:"username"`
+	PasswordHash    string     `gorm:"not null;size:255" json:"-"` // Never serialize password
+	FirstName       string     `gorm:"size:100" json:"first_name"`
+	LastName        string     `gorm:"size:100" json:"last_name"`
+	Phone           string     `gorm:"size:20" json:"phone"`
+	EmailVerified   bool       `gorm:"default:false" json:"email_verified"`
+	PhoneVerified   bool       `gorm:"default:false" json:"phone_verified"`
+	
+	// KYC Verification Fields
+	NIN             string     `gorm:"size:11;index" json:"nin,omitempty"` // National Identification Number (11 digits)
+	KYCVerified     bool       `gorm:"default:false" json:"kyc_verified"`
+	KYCVerifiedAt   *time.Time `gorm:"index" json:"kyc_verified_at,omitempty"`
+	
+	Role            UserRole   `gorm:"type:user_role;default:user" json:"role"`
+	CreatedAt       time.Time  `gorm:"not null" json:"created_at"`
+	UpdatedAt       time.Time  `gorm:"not null" json:"updated_at"`
 	
 	// Relationships
 	Sessions []Session `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`

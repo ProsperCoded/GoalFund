@@ -109,3 +109,17 @@ type EmailVerificationRequested struct {
 func (e EmailVerificationRequested) EventType() string { return "EmailVerificationRequested" }
 func (e EmailVerificationRequested) EventID() string   { return e.ID }
 func (e EmailVerificationRequested) Timestamp() int64  { return e.CreatedAt }
+
+// KYCVerified event is emitted when a user completes KYC verification
+type KYCVerified struct {
+	ID        string
+	UserID    string
+	Email     string
+	Username  string
+	CreatedAt int64
+}
+
+func (e KYCVerified) EventType() string { return "KYCVerified" }
+func (e KYCVerified) EventID() string   { return e.ID }
+func (e KYCVerified) Timestamp() int64  { return e.CreatedAt }
+

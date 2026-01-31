@@ -256,12 +256,43 @@ INITIATED → PENDING → VERIFIED → FAILED
 - Authentication (JWT)
 - Roles & permissions
 - Optional MFA
+- **Email verification tracking**
+- **KYC (Know Your Customer) verification**
 
 **Database Tables:**
 
-- users
+- users (with email_verified and KYC fields)
 - roles
 - sessions
+
+**Email Verification:**
+
+- `email_verified` boolean field tracks email verification status
+- Users start with `email_verified = false` upon registration
+- Email verification can be implemented via verification tokens/links
+- Verified status is returned in all user responses
+
+**KYC Verification:**
+
+- **Basic NIN (National Identification Number) verification**
+- Users can submit their 11-digit NIN for identity verification
+- **Dummy implementation** - automatically approves upon submission (no actual verification)
+- Tracks verification status with `kyc_verified` boolean and `kyc_verified_at` timestamp
+- NIN is masked in responses for privacy (shows only last 4 digits)
+- Prevents duplicate NIN registration across accounts
+- Emits `KYCVerified` event for cross-service notifications
+
+**KYC Endpoints:**
+
+- `POST /api/v1/users/kyc/submit-nin` - Submit NIN for verification
+- `GET /api/v1/users/kyc/status` - Get current KYC verification status
+
+**Security Features:**
+
+- NIN format validation (must be exactly 11 digits)
+- Duplicate NIN prevention
+- Privacy-focused NIN masking in responses
+- KYC status included in user profile responses
 
 ---
 
@@ -296,6 +327,10 @@ INITIATED → PENDING → VERIFIED → FAILED
 - **WithdrawalCompleted** - Emitted by Ledger Service after successful withdrawal
 - **ProofSubmitted** - Emitted by Goals Service when proof is submitted
 - **ProofVoted** - Emitted when a contributor casts a vote on proof
+- **UserSignedUp** - Emitted by Users Service when a new user registers
+- **PasswordResetRequested** - Emitted by Users Service when password reset is requested
+- **EmailVerificationRequested** - Emitted by Users Service when email verification is needed
+- **KYCVerified** - Emitted by Users Service when a user completes KYC verification
 
 **Rules:**
 

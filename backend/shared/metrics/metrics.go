@@ -202,6 +202,12 @@ func TrackJWTIssued(tokenType string) {
 	IncrementCounter("user.jwt.issued.count", fmt.Sprintf("token_type:%s", tokenType))
 }
 
+// TrackKYCVerification tracks KYC verification completion
+func TrackKYCVerification(userID string) {
+	IncrementCounter("user.kyc.verified.count", fmt.Sprintf("user_id:%s", userID))
+}
+
+
 // Event/Messaging Metrics
 
 // TrackEventPublished tracks event publishing
@@ -240,4 +246,31 @@ func TrackCacheMiss(cacheKey string) {
 // TrackCacheOperation tracks cache operation duration
 func TrackCacheOperation(operation string, duration time.Duration) {
 	RecordHistogram("cache.operation.duration", duration.Seconds(), fmt.Sprintf("operation:%s", operation))
+}
+
+// Notification Metrics
+
+// TrackNotificationCreated tracks notification creation
+func TrackNotificationCreated(notificationType string) {
+	IncrementCounter("notification.created.count", fmt.Sprintf("type:%s", notificationType))
+}
+
+// TrackEmailSent tracks email sending
+func TrackEmailSent(success bool, duration time.Duration) {
+	status := "success"
+	if !success {
+		status = "failure"
+	}
+	IncrementCounter("notification.email.sent.count", fmt.Sprintf("status:%s", status))
+	RecordHistogram("notification.email.send.duration", duration.Seconds(), fmt.Sprintf("status:%s", status))
+}
+
+// TrackNotificationRead tracks when a notification is read
+func TrackNotificationRead(notificationType string) {
+	IncrementCounter("notification.read.count", fmt.Sprintf("type:%s", notificationType))
+}
+
+// TrackNotificationDeleted tracks notification deletion
+func TrackNotificationDeleted(notificationType string) {
+	IncrementCounter("notification.deleted.count", fmt.Sprintf("type:%s", notificationType))
 }

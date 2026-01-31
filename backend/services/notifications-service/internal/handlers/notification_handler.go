@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gofund/notifications-service/internal/dto"
 	"github.com/gofund/notifications-service/internal/models"
 	"github.com/gofund/notifications-service/internal/service"
 )
@@ -21,20 +22,6 @@ func NewNotificationHandler(notificationService service.NotificationService) *No
 	}
 }
 
-// GetNotifications godoc
-// @Summary Get user notifications
-// @Description Get paginated notifications for the authenticated user
-// @Tags notifications
-// @Accept json
-// @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param page_size query int false "Page size" default(20)
-// @Param is_read query bool false "Filter by read status"
-// @Param type query string false "Filter by notification type"
-// @Success 200 {object} models.PaginatedNotifications
-// @Failure 401 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /api/v1/notifications [get]
 func (h *NotificationHandler) GetNotifications(c *gin.Context) {
 	// Get user ID from context (set by auth middleware)
 	userID, exists := c.Get("user_id")
@@ -47,7 +34,7 @@ func (h *NotificationHandler) GetNotifications(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 
-	var query models.ListNotificationsQuery
+	var query dto.ListNotificationsQuery
 	query.UserID = userID.(string)
 	query.Page = page
 	query.PageSize = pageSize
@@ -231,7 +218,7 @@ func (h *NotificationHandler) GetPreferences(c *gin.Context) {
 // @Tags preferences
 // @Accept json
 // @Produce json
-// @Param preferences body models.UpdatePreferencesRequest true "Preferences to update"
+// @Param preferences body dto.UpdatePreferencesRequest true "Preferences to update"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -244,7 +231,7 @@ func (h *NotificationHandler) UpdatePreferences(c *gin.Context) {
 		return
 	}
 
-	var req models.UpdatePreferencesRequest
+	var req dto.UpdatePreferencesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

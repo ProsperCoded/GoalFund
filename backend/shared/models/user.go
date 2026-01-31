@@ -27,10 +27,18 @@ type User struct {
 	EmailVerified   bool       `gorm:"default:false" json:"email_verified"`
 	PhoneVerified   bool       `gorm:"default:false" json:"phone_verified"`
 	
+	// Password Setup Tracking
+	HasSetPassword  bool       `gorm:"default:true" json:"has_set_password"` // False for email-only contributions
+	
 	// KYC Verification Fields
 	NIN             string     `gorm:"size:11;index" json:"nin,omitempty"` // National Identification Number (11 digits)
 	KYCVerified     bool       `gorm:"default:false" json:"kyc_verified"`
 	KYCVerifiedAt   *time.Time `gorm:"index" json:"kyc_verified_at,omitempty"`
+	
+	// Settlement Account Details (for refunds/withdrawals)
+	SettlementBankName      string `gorm:"size:100" json:"settlement_bank_name,omitempty"`
+	SettlementAccountNumber string `gorm:"size:20;index" json:"settlement_account_number,omitempty"`
+	SettlementAccountName   string `gorm:"size:255" json:"settlement_account_name,omitempty"`
 	
 	Role            UserRole   `gorm:"type:user_role;default:user" json:"role"`
 	CreatedAt       time.Time  `gorm:"not null" json:"created_at"`

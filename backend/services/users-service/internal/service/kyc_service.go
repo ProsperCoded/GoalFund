@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gofund/shared/metrics"
-	"github.com/gofund/shared/models"
+	"github.com/gofund/users-service/internal/dto"
 	"github.com/gofund/users-service/internal/repository"
 	"github.com/google/uuid"
 )
@@ -25,21 +25,9 @@ func NewKYCService(userRepo *repository.UserRepository, eventService *EventServi
 	}
 }
 
-// SubmitNINRequest represents a NIN submission request
-type SubmitNINRequest struct {
-	NIN string `json:"nin" binding:"required,len=11"`
-}
-
-// KYCStatusResponse represents KYC status information
-type KYCStatusResponse struct {
-	KYCVerified   bool       `json:"kyc_verified"`
-	KYCVerifiedAt *time.Time `json:"kyc_verified_at,omitempty"`
-	NIN           string     `json:"nin,omitempty"` // Masked for privacy
-}
-
 // SubmitNIN submits a NIN for KYC verification
 // In this dummy implementation, we automatically verify the user
-func (s *KYCService) SubmitNIN(userID string, req *SubmitNINRequest) (*KYCStatusResponse, error) {
+func (s *KYCService) SubmitNIN(userID string, req *dto.SubmitNINRequest) (*dto.KYCStatusResponse, error) {
 	// Parse user ID
 	id, err := uuid.Parse(userID)
 	if err != nil {
@@ -88,7 +76,7 @@ func (s *KYCService) SubmitNIN(userID string, req *SubmitNINRequest) (*KYCStatus
 	// Track KYC verification metric
 	metrics.TrackKYCVerification(user.ID.String())
 
-	return &KYCStatusResponse{
+	return &dto.KYCStatusResponse{
 		KYCVerified:   user.KYCVerified,
 		KYCVerifiedAt: user.KYCVerifiedAt,
 		NIN:           s.maskNIN(user.NIN),
@@ -96,7 +84,7 @@ func (s *KYCService) SubmitNIN(userID string, req *SubmitNINRequest) (*KYCStatus
 }
 
 // GetKYCStatus retrieves the KYC status for a user
-func (s *KYCService) GetKYCStatus(userID string) (*KYCStatusResponse, error) {
+func (s *KYCService) GetKYCStatus(userID string) (*dto.KYCStatusResponse, error) {
 	// Parse user ID
 	id, err := uuid.Parse(userID)
 	if err != nil {
@@ -109,7 +97,7 @@ func (s *KYCService) GetKYCStatus(userID string) (*KYCStatusResponse, error) {
 		return nil, errors.New("user not found")
 	}
 
-	return &KYCStatusResponse{
+	return &dto.KYCStatusResponse{
 		KYCVerified:   user.KYCVerified,
 		KYCVerifiedAt: user.KYCVerifiedAt,
 		NIN:           s.maskNIN(user.NIN),

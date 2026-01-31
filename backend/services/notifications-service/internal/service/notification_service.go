@@ -5,23 +5,24 @@ import (
 	"log"
 	"math"
 
+	"github.com/gofund/notifications-service/internal/dto"
 	"github.com/gofund/notifications-service/internal/models"
 	"github.com/gofund/notifications-service/internal/repository"
 )
 
 // NotificationService handles notification business logic
 type NotificationService interface {
-	CreateNotification(req models.CreateNotificationRequest) (*models.Notification, error)
+	CreateNotification(req dto.CreateNotificationRequest) (*models.Notification, error)
 	GetNotification(id string) (*models.Notification, error)
-	GetUserNotifications(userID string, page, pageSize int) (*models.PaginatedNotifications, error)
-	ListNotifications(query models.ListNotificationsQuery) (*models.PaginatedNotifications, error)
+	GetUserNotifications(userID string, page, pageSize int) (*dto.PaginatedNotifications, error)
+	ListNotifications(query dto.ListNotificationsQuery) (*dto.PaginatedNotifications, error)
 	MarkAsRead(id string) error
 	DeleteNotification(id string) error
 	GetUnreadCount(userID string) (int64, error)
 	
 	// Preference methods
 	GetUserPreferences(userID string) (*models.NotificationPreferences, error)
-	UpdateUserPreferences(userID string, updates models.UpdatePreferencesRequest) error
+	UpdateUserPreferences(userID string, updates dto.UpdatePreferencesRequest) error
 	CreateDefaultPreferences(userID string) error
 }
 
@@ -45,7 +46,7 @@ func NewNotificationService(
 }
 
 // CreateNotification creates a new notification
-func (s *notificationService) CreateNotification(req models.CreateNotificationRequest) (*models.Notification, error) {
+func (s *notificationService) CreateNotification(req dto.CreateNotificationRequest) (*models.Notification, error) {
 	notification := &models.Notification{
 		UserID:  req.UserID,
 		Type:    req.Type,
@@ -141,7 +142,7 @@ func (s *notificationService) GetNotification(id string) (*models.Notification, 
 }
 
 // GetUserNotifications retrieves notifications for a user with pagination
-func (s *notificationService) GetUserNotifications(userID string, page, pageSize int) (*models.PaginatedNotifications, error) {
+func (s *notificationService) GetUserNotifications(userID string, page, pageSize int) (*dto.PaginatedNotifications, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -156,7 +157,7 @@ func (s *notificationService) GetUserNotifications(userID string, page, pageSize
 
 	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
 
-	return &models.PaginatedNotifications{
+	return &dto.PaginatedNotifications{
 		Notifications: notifications,
 		Total:         total,
 		Page:          page,
@@ -166,7 +167,7 @@ func (s *notificationService) GetUserNotifications(userID string, page, pageSize
 }
 
 // ListNotifications retrieves notifications with filters
-func (s *notificationService) ListNotifications(query models.ListNotificationsQuery) (*models.PaginatedNotifications, error) {
+func (s *notificationService) ListNotifications(query dto.ListNotificationsQuery) (*dto.PaginatedNotifications, error) {
 	notifications, total, err := s.notificationRepo.List(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list notifications: %w", err)
@@ -177,7 +178,7 @@ func (s *notificationService) ListNotifications(query models.ListNotificationsQu
 	}
 	totalPages := int(math.Ceil(float64(total) / float64(query.PageSize)))
 
-	return &models.PaginatedNotifications{
+	return &dto.PaginatedNotifications{
 		Notifications: notifications,
 		Total:         total,
 		Page:          query.Page,
@@ -215,7 +216,7 @@ func (s *notificationService) GetUserPreferences(userID string) (*models.Notific
 }
 
 // UpdateUserPreferences updates user notification preferences
-func (s *notificationService) UpdateUserPreferences(userID string, updates models.UpdatePreferencesRequest) error {
+func (s *notificationService) UpdateUserPreferences(userID string, updates dto.UpdatePreferencesRequest) error {
 	return s.preferenceRepo.Update(userID, updates)
 }
 

@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/gofund/users-service/internal/dto"
 	"github.com/gofund/users-service/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -26,25 +27,25 @@ func NewKYCController(kycService *service.KYCService) *KYCController {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body service.SubmitNINRequest true "NIN submission request"
-// @Success 200 {object} service.KYCStatusResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Param request body dto.SubmitNINRequest true "NIN submission request"
+// @Success 200 {object} dto.KYCStatusResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
 // @Router /api/v1/users/kyc/submit-nin [post]
 func (c *KYCController) SubmitNIN(ctx *gin.Context) {
 	// Get user ID from context (set by auth middleware)
 	userID, exists := ctx.Get("user_id")
 	if !exists {
-		ctx.JSON(http.StatusUnauthorized, ErrorResponse{
+		ctx.JSON(http.StatusUnauthorized, dto.ErrorResponse{
 			Error: "unauthorized",
 		})
 		return
 	}
 
-	var req service.SubmitNINRequest
+	var req dto.SubmitNINRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, ErrorResponse{
+		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Error: err.Error(),
 		})
 		return
@@ -52,7 +53,7 @@ func (c *KYCController) SubmitNIN(ctx *gin.Context) {
 
 	response, err := c.kycService.SubmitNIN(userID.(string), &req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, ErrorResponse{
+		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Error: err.Error(),
 		})
 		return
@@ -67,15 +68,15 @@ func (c *KYCController) SubmitNIN(ctx *gin.Context) {
 // @Tags KYC
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} service.KYCStatusResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} dto.KYCStatusResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
 // @Router /api/v1/users/kyc/status [get]
 func (c *KYCController) GetKYCStatus(ctx *gin.Context) {
 	// Get user ID from context (set by auth middleware)
 	userID, exists := ctx.Get("user_id")
 	if !exists {
-		ctx.JSON(http.StatusUnauthorized, ErrorResponse{
+		ctx.JSON(http.StatusUnauthorized, dto.ErrorResponse{
 			Error: "unauthorized",
 		})
 		return
@@ -83,16 +84,11 @@ func (c *KYCController) GetKYCStatus(ctx *gin.Context) {
 
 	response, err := c.kycService.GetKYCStatus(userID.(string))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, ErrorResponse{
+		ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
 			Error: err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, response)
-}
-
-// ErrorResponse represents an error response
-type ErrorResponse struct {
-	Error string `json:"error"`
 }

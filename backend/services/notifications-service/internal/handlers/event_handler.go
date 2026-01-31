@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gofund/notifications-service/internal/dto"
 	"github.com/gofund/notifications-service/internal/models"
 	"github.com/gofund/notifications-service/internal/service"
 	"github.com/gofund/shared/events"
@@ -32,7 +33,7 @@ func (h *EventHandler) HandlePaymentVerified(data []byte) error {
 	log.Printf("Processing PaymentVerified event: %s for user %s", event.ID, event.UserID)
 
 	// Create notification
-	req := models.CreateNotificationRequest{
+	req := dto.CreateNotificationRequest{
 		UserID:  event.UserID,
 		Type:    models.NotificationTypePaymentVerified,
 		Title:   "Payment Successful",
@@ -75,7 +76,7 @@ func (h *EventHandler) HandleContributionConfirmed(data []byte) error {
 	log.Printf("Processing ContributionConfirmed event: %s", event.ID)
 
 	// Notify goal owner
-	ownerReq := models.CreateNotificationRequest{
+	ownerReq := dto.CreateNotificationRequest{
 		UserID:  event.GoalOwnerID,
 		Type:    models.NotificationTypeContributionConfirmed,
 		Title:   "New Contribution Received",
@@ -116,7 +117,7 @@ func (h *EventHandler) HandleWithdrawalRequested(data []byte) error {
 	log.Printf("Processing WithdrawalRequested event: %s", event.ID)
 
 	// Notify goal owner
-	req := models.CreateNotificationRequest{
+	req := dto.CreateNotificationRequest{
 		UserID:  event.OwnerID,
 		Type:    models.NotificationTypeWithdrawalRequested,
 		Title:   "Withdrawal Requested",
@@ -155,7 +156,7 @@ func (h *EventHandler) HandleWithdrawalCompleted(data []byte) error {
 	log.Printf("Processing WithdrawalCompleted event: %s", event.ID)
 
 	// Notify goal owner
-	req := models.CreateNotificationRequest{
+	req := dto.CreateNotificationRequest{
 		UserID:  event.OwnerID,
 		Type:    models.NotificationTypeWithdrawalCompleted,
 		Title:   "Withdrawal Completed",
@@ -216,7 +217,7 @@ func (h *EventHandler) HandleProofVoted(data []byte) error {
 	}
 
 	// Notify goal owner
-	req := models.CreateNotificationRequest{
+	req := dto.CreateNotificationRequest{
 		UserID:  event.OwnerID,
 		Type:    models.NotificationTypeProofVoted,
 		Title:   "New Vote on Your Proof",
@@ -270,7 +271,7 @@ func (h *EventHandler) HandleUserSignedUp(data []byte) error {
 	}
 
 	// Create welcome notification
-	req := models.CreateNotificationRequest{
+	req := dto.CreateNotificationRequest{
 		UserID:  event.UserID,
 		Type:    models.NotificationTypeUserSignedUp,
 		Title:   "Welcome to GoFund!",
@@ -300,7 +301,7 @@ func (h *EventHandler) HandlePasswordResetRequested(data []byte) error {
 	log.Printf("Processing PasswordResetRequested event: %s for user %s", event.ID, event.UserID)
 
 	// Create notification
-	req := models.CreateNotificationRequest{
+	req := dto.CreateNotificationRequest{
 		UserID:  event.UserID,
 		Type:    models.NotificationTypePasswordReset,
 		Title:   "Password Reset Requested",
@@ -330,7 +331,7 @@ func (h *EventHandler) HandleEmailVerificationRequested(data []byte) error {
 	log.Printf("Processing EmailVerificationRequested event: %s for user %s", event.ID, event.UserID)
 
 	// Create notification
-	req := models.CreateNotificationRequest{
+	req := dto.CreateNotificationRequest{
 		UserID:  event.UserID,
 		Type:    models.NotificationTypeEmailVerification,
 		Title:   "Verify Your Email",
@@ -360,7 +361,7 @@ func (h *EventHandler) HandleKYCVerified(data []byte) error {
 	log.Printf("Processing KYCVerified event: %s for user %s", event.ID, event.UserID)
 
 	// Create notification
-	req := models.CreateNotificationRequest{
+	req := dto.CreateNotificationRequest{
 		UserID:  event.UserID,
 		Type:    models.NotificationTypeKYCVerified,
 		Title:   "KYC Verification Complete",

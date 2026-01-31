@@ -5,20 +5,24 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gofund/users-service/internal/dto"
 	"github.com/gofund/users-service/internal/service"
 )
 
 // AuthController handles authentication-related endpoints
 type AuthController struct {
 	authService *service.AuthService
+	userService *service.UserService
 }
 
 // NewAuthController creates a new auth controller instance
-func NewAuthController(authService *service.AuthService) *AuthController {
+func NewAuthController(authService *service.AuthService, userService *service.UserService) *AuthController {
 	return &AuthController{
 		authService: authService,
+		userService: userService,
 	}
 }
+
 
 // VerifyToken handles internal token verification for Nginx auth_request
 // This endpoint is called by Nginx for every protected route
@@ -60,7 +64,7 @@ func (ac *AuthController) VerifyToken(c *gin.Context) {
 
 // Login handles user authentication and JWT token generation
 func (ac *AuthController) Login(c *gin.Context) {
-	var req service.LoginRequest
+	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request format",
@@ -83,7 +87,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 
 // Register handles user registration
 func (ac *AuthController) Register(c *gin.Context) {
-	var req service.RegisterRequest
+	var req dto.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request format",
@@ -106,7 +110,7 @@ func (ac *AuthController) Register(c *gin.Context) {
 
 // RefreshToken handles JWT token refresh
 func (ac *AuthController) RefreshToken(c *gin.Context) {
-	var req service.RefreshRequest
+	var req dto.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request format",
@@ -129,7 +133,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 
 // Logout handles user logout (token invalidation)
 func (ac *AuthController) Logout(c *gin.Context) {
-	var req service.RefreshRequest
+	var req dto.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request format",
@@ -153,7 +157,7 @@ func (ac *AuthController) Logout(c *gin.Context) {
 
 // ForgotPassword handles password reset requests
 func (ac *AuthController) ForgotPassword(c *gin.Context) {
-	var req service.ForgotPasswordRequest
+	var req dto.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request format",
@@ -177,7 +181,7 @@ func (ac *AuthController) ForgotPassword(c *gin.Context) {
 
 // ResetPassword handles password reset with token
 func (ac *AuthController) ResetPassword(c *gin.Context) {
-	var req service.ResetPasswordRequest
+	var req dto.ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request format",
@@ -211,13 +215,14 @@ func (ac *AuthController) GetProfile(c *gin.Context) {
 	}
 
 	// Get user profile
-	profile, err := ac.authService.GetProfile(userID)
+	profile, err := ac.userService.GetProfile(userID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+
 
 	c.JSON(http.StatusOK, gin.H{
 		"user": profile,
@@ -235,7 +240,7 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	var req service.UpdateProfileRequest
+	var req dto.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request format",
@@ -245,13 +250,14 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 	}
 
 	// Update user profile
-	profile, err := ac.authService.UpdateProfile(userID, &req)
+	profile, err := ac.userService.UpdateProfile(userID, &req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+
 
 	c.JSON(http.StatusOK, gin.H{
 		"user": profile,

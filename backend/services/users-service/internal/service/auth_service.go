@@ -4,12 +4,14 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/gofund/shared/jwt"
 	"github.com/gofund/shared/metrics"
 	"github.com/gofund/shared/models"
 	"github.com/gofund/shared/password"
+	"github.com/gofund/users-service/internal/dto"
 	"github.com/gofund/users-service/internal/repository"
 	"github.com/google/uuid"
 )
@@ -32,73 +34,8 @@ func NewAuthService(userRepo *repository.UserRepository, sessionRepo *repository
 	}
 }
 
-// LoginRequest represents a login request
-type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8"`
-}
-
-// RegisterRequest represents a registration request
-type RegisterRequest struct {
-	Email     string `json:"email" binding:"required,email"`
-	Username  string `json:"username" binding:"required,min=3,max=50"`
-	Password  string `json:"password" binding:"required,min=8"`
-	FirstName string `json:"first_name" binding:"required,min=2,max=50"`
-	LastName  string `json:"last_name" binding:"required,min=2,max=50"`
-	Phone     string `json:"phone"`
-}
-
-// AuthResponse represents authentication response
-type AuthResponse struct {
-	User         *UserResponse    `json:"user"`
-	AccessToken  string           `json:"access_token"`
-	RefreshToken string           `json:"refresh_token"`
-	TokenType    string           `json:"token_type"`
-	ExpiresIn    int64            `json:"expires_in"`
-}
-
-// UserResponse represents user data in response
-type UserResponse struct {
-	ID            string           `json:"id"`
-	Email         string           `json:"email"`
-	Username      string           `json:"username"`
-	FirstName     string           `json:"first_name"`
-	LastName      string           `json:"last_name"`
-	Phone         string           `json:"phone"`
-	EmailVerified bool             `json:"email_verified"`
-	PhoneVerified bool             `json:"phone_verified"`
-	KYCVerified   bool             `json:"kyc_verified"`
-	KYCVerifiedAt *time.Time       `json:"kyc_verified_at,omitempty"`
-	Role          models.UserRole  `json:"role"`
-	CreatedAt     time.Time        `json:"created_at"`
-}
-
-
-// UpdateProfileRequest represents a profile update request
-type UpdateProfileRequest struct {
-	FirstName string `json:"first_name" binding:"omitempty,min=2,max=50"`
-	LastName  string `json:"last_name" binding:"omitempty,min=2,max=50"`
-	Phone     string `json:"phone" binding:"omitempty"`
-}
-
-// ForgotPasswordRequest represents a forgot password request
-type ForgotPasswordRequest struct {
-	Email string `json:"email" binding:"required,email"`
-}
-
-// ResetPasswordRequest represents a reset password request
-type ResetPasswordRequest struct {
-	Token       string `json:"token" binding:"required"`
-	NewPassword string `json:"new_password" binding:"required,min=8"`
-}
-
-// RefreshRequest represents a token refresh request
-type RefreshRequest struct {
-	RefreshToken string `json:"refresh_token" binding:"required"`
-}
-
 // Login authenticates a user and returns tokens
-func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
+func (s *AuthService) Login(req *dto.LoginRequest) (*dto.AuthResponse, error) {
 	// Get user by email
 	user, err := s.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
@@ -149,8 +86,8 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 	metrics.TrackJWTIssued("access_token")
 	metrics.TrackJWTIssued("refresh_token")
 
-	return &AuthResponse{
-		User: &UserResponse{
+	return &dto.AuthResponse{
+		User: &dto.UserResponse{
 			ID:            user.ID.String(),
 			Email:         user.Email,
 			Username:      user.Username,
@@ -171,41 +108,91 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 	}, nil
 }
 
-// Register creates a new user account
-func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
+// Register creates a new user account (supports full registration and email-only)
+func (s *AuthService) Register(req *dto.RegisterRequest) (*dto.AuthResponse, error) {
 	// Check if email exists
-	exists, err := s.userRepo.EmailExists(req.Email)
-	if err != nil {
-		return nil, errors.New("registration failed")
-	}
-	if exists {
+	user, err := s.userRepo.GetUserByEmail(req.Email)
+	if err == nil {
+		// User exists, update settlement account if provided and not full registration
+		if req.Password == "" && req.SettlementBankName != "" {
+			user.SettlementBankName = req.SettlementBankName
+			user.SettlementAccountNumber = req.SettlementAccountNumber
+			user.SettlementAccountName = req.SettlementAccountName
+			if err := s.userRepo.UpdateUser(user); err != nil {
+				return nil, errors.New("failed to update settlement account")
+			}
+		}
+		
+		// If it's a "silent" registration for an existing user, just return success
+		if req.Password == "" {
+			return &dto.AuthResponse{
+				User: mapUserToResponse(user),
+			}, nil
+		}
+		
 		return nil, errors.New("email already exists")
 	}
 
-	// Check if username exists
-	exists, err = s.userRepo.UsernameExists(req.Username)
-	if err != nil {
-		return nil, errors.New("registration failed")
-	}
-	if exists {
-		return nil, errors.New("username already exists")
+	// Prepare user fields
+	var hashedPassword string
+	hasSetPassword := false
+	if req.Password != "" {
+		hashed, err := password.HashPassword(req.Password, nil)
+		if err != nil {
+			return nil, errors.New("failed to process password")
+		}
+		hashedPassword = hashed
+		hasSetPassword = true
 	}
 
-	// Hash password
-	hashedPassword, err := password.HashPassword(req.Password, nil)
-	if err != nil {
-		return nil, errors.New("failed to process password")
+	// Infer names if not provided
+	firstName := req.FirstName
+	lastName := req.LastName
+	if firstName == "" {
+		emailParts := strings.Split(req.Email, "@")
+		usernamePart := emailParts[0]
+		nameParts := strings.FieldsFunc(usernamePart, func(r rune) bool {
+			return r == '.' || r == '_' || r == '-'
+		})
+		firstName = "User"
+		if len(nameParts) > 0 {
+			firstName = strings.Title(strings.ToLower(nameParts[0]))
+		}
+		if len(nameParts) > 1 && lastName == "" {
+			lastName = strings.Title(strings.ToLower(nameParts[1]))
+		}
+	}
+
+	// Generate a unique username if not provided
+	username := req.Username
+	if username == "" {
+		emailParts := strings.Split(req.Email, "@")
+		baseUsername := emailParts[0]
+		username = baseUsername
+		counter := 1
+		for {
+			exists, _ := s.userRepo.UsernameExists(username)
+			if !exists {
+				break
+			}
+			username = baseUsername + string(rune(counter))
+			counter++
+		}
 	}
 
 	// Create user
-	user := &models.User{
-		Email:        req.Email,
-		Username:     req.Username,
-		PasswordHash: hashedPassword,
-		FirstName:    req.FirstName,
-		LastName:     req.LastName,
-		Phone:        req.Phone,
-		Role:         models.UserRoleUser, // Default role
+	user = &models.User{
+		Email:                   req.Email,
+		Username:                username,
+		PasswordHash:            hashedPassword,
+		FirstName:               firstName,
+		LastName:                lastName,
+		Phone:                   req.Phone,
+		HasSetPassword:          hasSetPassword,
+		SettlementBankName:      req.SettlementBankName,
+		SettlementAccountNumber: req.SettlementAccountNumber,
+		SettlementAccountName:   req.SettlementAccountName,
+		Role:                    models.UserRoleUser,
 	}
 
 	if err := s.userRepo.CreateUser(user); err != nil {
@@ -216,14 +203,18 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 	if s.eventService != nil {
 		if err := s.eventService.PublishUserSignedUp(user); err != nil {
 			// Log error but don't fail registration
-			// In production, you might want to use a proper logger
 		}
 	}
 
-	// Generate token pair with user role
-	roles := []string{string(user.Role)}
+	// If no password set, don't issue tokens (they need to set password later)
+	if !hasSetPassword {
+		return &dto.AuthResponse{
+			User: mapUserToResponse(user),
+		}, nil
+	}
 
 	// Generate token pair
+	roles := []string{string(user.Role)}
 	tokenPair, err := s.jwtService.GenerateTokenPair(user.ID.String(), user.Email, roles)
 	if err != nil {
 		return nil, errors.New("failed to generate tokens")
@@ -234,11 +225,9 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 	session := &models.Session{
 		UserID:    user.ID,
 		TokenHash: refreshTokenHash,
-		ExpiresAt: time.Now().Add(30 * 24 * time.Hour), // 30 days
+		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
 		Metadata: map[string]interface{}{
 			"registration_time": time.Now(),
-			"ip":                "", // Will be set by controller
-			"user_agent":        "", // Will be set by controller
 		},
 	}
 
@@ -246,27 +235,8 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 		return nil, errors.New("failed to create session")
 	}
 
-	// Track user registration and metrics
-	metrics.TrackUserRegistration()
-	metrics.TrackSessionCreated(user.ID.String())
-	metrics.TrackJWTIssued("access_token")
-	metrics.TrackJWTIssued("refresh_token")
-
-	return &AuthResponse{
-		User: &UserResponse{
-			ID:            user.ID.String(),
-			Email:         user.Email,
-			Username:      user.Username,
-			FirstName:     user.FirstName,
-			LastName:      user.LastName,
-			Phone:         user.Phone,
-			EmailVerified: user.EmailVerified,
-			PhoneVerified: user.PhoneVerified,
-			KYCVerified:   user.KYCVerified,
-			KYCVerifiedAt: user.KYCVerifiedAt,
-			Role:          user.Role,
-			CreatedAt:     user.CreatedAt,
-		},
+	return &dto.AuthResponse{
+		User:         mapUserToResponse(user),
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,
 		TokenType:    tokenPair.TokenType,
@@ -274,8 +244,9 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 	}, nil
 }
 
+
 // RefreshToken generates new access token using refresh token
-func (s *AuthService) RefreshToken(req *RefreshRequest) (*jwt.TokenPair, error) {
+func (s *AuthService) RefreshToken(req *dto.RefreshRequest) (*jwt.TokenPair, error) {
 	// Validate refresh token
 	claims, err := s.jwtService.ValidateRefreshToken(req.RefreshToken)
 	if err != nil {
@@ -324,13 +295,13 @@ func (s *AuthService) RefreshToken(req *RefreshRequest) (*jwt.TokenPair, error) 
 }
 
 // ValidateAccessToken validates an access token and returns user info
-func (s *AuthService) ValidateAccessToken(tokenString string) (*Claims, error) {
+func (s *AuthService) ValidateAccessToken(tokenString string) (*dto.Claims, error) {
 	claims, err := s.jwtService.ValidateAccessToken(tokenString)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Claims{
+	return &dto.Claims{
 		UserID: claims.UserID,
 		Email:  claims.Email,
 		Roles:  claims.Roles,
@@ -348,86 +319,9 @@ func (s *AuthService) LogoutAllSessions(userID uuid.UUID) error {
 	return s.sessionRepo.DeleteUserSessions(userID)
 }
 
-// Claims represents user claims for validation
-type Claims struct {
-	UserID string   `json:"user_id"`
-	Email  string   `json:"email"`
-	Roles  []string `json:"roles"`
-}
-
-// GetProfile retrieves user profile by ID
-func (s *AuthService) GetProfile(userID string) (*UserResponse, error) {
-	id, err := uuid.Parse(userID)
-	if err != nil {
-		return nil, errors.New("invalid user ID")
-	}
-
-	user, err := s.userRepo.GetUserByID(id)
-	if err != nil {
-		return nil, errors.New("user not found")
-	}
-
-	return &UserResponse{
-		ID:            user.ID.String(),
-		Email:         user.Email,
-		Username:      user.Username,
-		FirstName:     user.FirstName,
-		LastName:      user.LastName,
-		Phone:         user.Phone,
-		EmailVerified: user.EmailVerified,
-		PhoneVerified: user.PhoneVerified,
-		KYCVerified:   user.KYCVerified,
-		KYCVerifiedAt: user.KYCVerifiedAt,
-		Role:          user.Role,
-		CreatedAt:     user.CreatedAt,
-	}, nil
-}
-
-// UpdateProfile updates user profile
-func (s *AuthService) UpdateProfile(userID string, req *UpdateProfileRequest) (*UserResponse, error) {
-	id, err := uuid.Parse(userID)
-	if err != nil {
-		return nil, errors.New("invalid user ID")
-	}
-
-	user, err := s.userRepo.GetUserByID(id)
-	if err != nil {
-		return nil, errors.New("user not found")
-	}
-
-	// Update fields if provided
-	if req.FirstName != "" {
-		user.FirstName = req.FirstName
-	}
-	if req.LastName != "" {
-		user.LastName = req.LastName
-	}
-	if req.Phone != "" {
-		user.Phone = req.Phone
-	}
-
-	if err := s.userRepo.UpdateUser(user); err != nil {
-		return nil, errors.New("failed to update profile")
-	}
-
-	return &UserResponse{
-		ID:            user.ID.String(),
-		Email:         user.Email,
-		Username:      user.Username,
-		FirstName:     user.FirstName,
-		LastName:      user.LastName,
-		Phone:         user.Phone,
-		EmailVerified: user.EmailVerified,
-		PhoneVerified: user.PhoneVerified,
-		KYCVerified:   user.KYCVerified,
-		KYCVerifiedAt: user.KYCVerifiedAt,
-		Role:          user.Role,
-		CreatedAt:     user.CreatedAt,
-	}, nil
-}
 
 // ForgotPassword initiates password reset process
-func (s *AuthService) ForgotPassword(req *ForgotPasswordRequest) error {
+func (s *AuthService) ForgotPassword(req *dto.ForgotPasswordRequest) error {
 	user, err := s.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
 		// Return success even if user doesn't exist for security
@@ -461,7 +355,7 @@ func (s *AuthService) ForgotPassword(req *ForgotPasswordRequest) error {
 }
 
 // ResetPassword resets user password using token
-func (s *AuthService) ResetPassword(req *ResetPasswordRequest) error {
+func (s *AuthService) ResetPassword(req *dto.ResetPasswordRequest) error {
 	tokenHash := s.hashToken(req.Token)
 
 	// Get password reset token
@@ -509,3 +403,71 @@ func (s *AuthService) hashToken(token string) string {
 	hash := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(hash[:])
 }
+
+// mapUserToResponse maps user model to user response DTO
+func mapUserToResponse(user *models.User) *dto.UserResponse {
+	if user == nil {
+		return nil
+	}
+	return &dto.UserResponse{
+		ID:            user.ID.String(),
+		Email:         user.Email,
+		Username:      user.Username,
+		FirstName:     user.FirstName,
+		LastName:      user.LastName,
+		Phone:         user.Phone,
+		EmailVerified: user.EmailVerified,
+		PhoneVerified: user.PhoneVerified,
+		KYCVerified:   user.KYCVerified,
+		KYCVerifiedAt: user.KYCVerifiedAt,
+		Role:          user.Role,
+		CreatedAt:     user.CreatedAt,
+	}
+}
+
+// SetPassword handles first-time password setup
+func (s *AuthService) SetPassword(req *dto.SetPasswordRequest) error {
+	user, err := s.userRepo.GetUserByEmail(req.Email)
+	if err != nil {
+		return errors.New("user not found")
+	}
+
+	if user.HasSetPassword {
+		return errors.New("password already set")
+	}
+
+	hashedPassword, err := password.HashPassword(req.Password, nil)
+	if err != nil {
+		return errors.New("failed to process password")
+	}
+
+	user.PasswordHash = hashedPassword
+	user.HasSetPassword = true
+
+	return s.userRepo.UpdateUser(user)
+}
+
+// UpdateProfile updates user profile
+func (s *AuthService) UpdateProfile(userID uuid.UUID, req *dto.UpdateProfileRequest) (*dto.UserResponse, error) {
+	user, err := s.userRepo.GetUserByID(userID)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	if req.FirstName != "" {
+		user.FirstName = req.FirstName
+	}
+	if req.LastName != "" {
+		user.LastName = req.LastName
+	}
+	if req.Phone != "" {
+		user.Phone = req.Phone
+	}
+
+	if err := s.userRepo.UpdateUser(user); err != nil {
+		return nil, errors.New("failed to update profile")
+	}
+
+	return mapUserToResponse(user), nil
+}
+

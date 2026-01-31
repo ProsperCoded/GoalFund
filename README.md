@@ -92,7 +92,28 @@ GoFund solves this by enforcing **ledger-based accounting**, **verified payments
 - Goal can continue receiving funds after withdrawal (unless closed by owner)
 - Withdrawals can be tied to specific milestone completion
 
-### 4.6 Proof of Accomplishment & Community Feedback
+### 4.6 Refunds
+
+- Goal owners can initiate refunds for **cancelled or closed goals**
+- **Flexible refund percentage** - owners specify what percentage (1-100%) of contributions to refund
+- **Use cases:**
+  - Goal cancelled before completion
+  - Excess funds not needed after goal achieved
+  - Partial refunds when only some funds were used
+- **Automatic distribution** - system automatically calculates and processes refunds to all contributors proportionally
+- **Settlement accounts** - refunds sent to contributors' registered settlement accounts
+- Contributors can provide settlement account details:
+  - During contribution (even without full signup)
+  - Later through profile settings
+- All refunds are ledger-backed and fully auditable
+- **Refund process:**
+  1. Goal owner specifies refund percentage and reason
+  2. System calculates individual refund amounts for each contributor
+  3. Ledger entries created to reverse contributions
+  4. Payment service disburses funds to settlement accounts
+  5. Contributors notified of refund status
+
+### 4.7 Proof of Accomplishment & Community Feedback
 
 - Goal owners can submit proof **after withdrawal** (optional but encouraged)
 - Proofs serve as **transparency and accountability** mechanism (not a withdrawal gate)
@@ -102,13 +123,32 @@ GoFund solves this by enforcing **ledger-based accounting**, **verified payments
   - Votes are visible to all contributors for transparency
 - **Key Point:** Voting does NOT block or reverse withdrawals - it's purely for reputation and trust-building
 
-### 4.7 Real-Time Updates
+### 4.8 Lightweight User Onboarding
+
+- **Email-only contributions** - users can contribute without full signup
+- No password required at point of contribution
+- No email verification required for contribution
+- **Automatic account creation:**
+  - System creates minimal user account with just email
+  - Username and name inferred from email
+  - `has_set_password` flag tracks if user has completed full registration
+- **Settlement account collection:**
+  - Contributors can provide bank details during contribution (optional)
+  - Used for potential refunds
+  - Can be updated anytime through profile
+- **Later full registration:**
+  - Users can set password anytime to activate full account
+  - First-time password setup endpoint provided
+  - Existing contribution data automatically linked
+
+### 4.9 Real-Time Updates
 
 - Contributors receive live updates on:
 
   - Contributions
   - Goal funding status
   - Proof verification
+  - Refund notifications
 
 ---
 
@@ -171,6 +211,8 @@ GoFund solves this by enforcing **ledger-based accounting**, **verified payments
 - Idempotency enforcement
 - Payment state machine
 - Emit `PaymentVerified` events
+- **Refund disbursement** via Paystack Transfer API
+- Bank account resolution and validation
 
 **States:**
 INITIATED → PENDING → VERIFIED → FAILED
@@ -194,16 +236,21 @@ INITIATED → PENDING → VERIFIED → FAILED
 - Account management (user, goal, escrow)
 - Balance computation
 - Reconciliation support
+- **Refund transaction processing**
+- Balance verification for refunds
 
 **Database Tables:**
 
 - ledger_entries
 - accounts
+- transactions
+- balance_snapshots
 
 **Rules:**
 
 - Ledger entries are append-only
 - No direct balance mutation
+- All refunds create reversing entries
 
 ---
 
@@ -220,6 +267,8 @@ INITIATED → PENDING → VERIFIED → FAILED
 - Withdrawal request handling (with bank account validation)
 - Proof submission
 - Community voting & feedback logic
+- **Refund initiation and tracking**
+- **Deposit account management for goals**
 
 **Goal States:**
 
@@ -234,6 +283,7 @@ INITIATED → PENDING → VERIFIED → FAILED
 - Owner can transition OPEN → CLOSED at any time
 - Milestones can be one-time or recurring (WEEKLY, MONTHLY, SEMESTER, YEARLY)
 - Bank account details required for withdrawals
+- **Refunds only allowed for CANCELLED or CLOSED goals**
 
 **Database Tables:**
 
@@ -243,6 +293,8 @@ INITIATED → PENDING → VERIFIED → FAILED
 - **withdrawals** (with bank details snapshot)
 - proofs (with milestone_id reference)
 - votes
+- **refunds**
+- **refund_disbursements**
 
 ---
 
@@ -258,10 +310,12 @@ INITIATED → PENDING → VERIFIED → FAILED
 - Optional MFA
 - **Email verification tracking**
 - **KYC (Know Your Customer) verification**
+- **Settlement account management**
+- **Lightweight user creation (email-only)**
 
 **Database Tables:**
 
-- users (with email_verified and KYC fields)
+- users (with email_verified, KYC fields, and settlement account fields)
 - roles
 - sessions
 
@@ -271,6 +325,23 @@ INITIATED → PENDING → VERIFIED → FAILED
 - Users start with `email_verified = false` upon registration
 - Email verification can be implemented via verification tokens/links
 - Verified status is returned in all user responses
+
+**Lightweight User Creation:**
+
+- Users can be created with just an email address
+- No password required initially (`has_set_password = false`)
+- Username and name automatically generated from email
+- **Use case:** Enable contributions without full signup
+- Users can set password later to activate full account
+- Settlement account can be provided during lightweight creation
+
+**Settlement Accounts:**
+
+- Users can register bank account details for receiving refunds
+- Fields: bank name, account number, account name
+- Can be provided during contribution or added later
+- Used for automatic refund disbursements
+- Privacy-focused (masked in some responses)
 
 **KYC Verification:**
 
@@ -286,6 +357,12 @@ INITIATED → PENDING → VERIFIED → FAILED
 
 - `POST /api/v1/users/kyc/submit-nin` - Submit NIN for verification
 - `GET /api/v1/users/kyc/status` - Get current KYC verification status
+
+**New Endpoints:**
+
+- `POST /api/v1/users/lightweight` - Create email-only user account
+- `POST /api/v1/users/set-password` - Set password for first time
+- `PUT /api/v1/users/settlement-account` - Update settlement account
 
 **Security Features:**
 
@@ -330,8 +407,9 @@ INITIATED → PENDING → VERIFIED → FAILED
 - **UserSignedUp** - Emitted by Users Service when a new user registers
 - **PasswordResetRequested** - Emitted by Users Service when password reset is requested
 - **EmailVerificationRequested** - Emitted by Users Service when email verification is needed
-- **KYCVerified** - Emitted by Users Service when a user completes KYC verification
-
+- **KYCVerified** - Emitted by Users Service when a user completes KYC verification- **RefundInitiated** - Emitted by Goals Service when refund is initiated
+- **RefundCompleted** - Emitted by Payments Service when all refund disbursements complete
+- **ContributionRefunded** - Emitted when an individual contribution is refunded
 **Rules:**
 
 - Services never mutate other services’ databases

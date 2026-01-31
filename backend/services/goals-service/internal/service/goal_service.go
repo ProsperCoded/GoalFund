@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gofund/services/goals-service/internal/repository"
+	"github.com/gofund/goals-service/internal/dto"
+	"github.com/gofund/goals-service/internal/repository"
 	"github.com/gofund/shared/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -34,33 +35,8 @@ func NewGoalService(repo *repository.Repository) *GoalService {
 	return &GoalService{repo: repo}
 }
 
-// CreateGoalRequest represents a request to create a goal
-type CreateGoalRequest struct {
-	Title         string
-	Description   string
-	TargetAmount  int64
-	Currency      string
-	Deadline      *time.Time
-	BankName      string
-	AccountNumber string
-	AccountName   string
-	Milestones    []CreateMilestoneRequest
-}
-
-// CreateMilestoneRequest represents a request to create a milestone
-type CreateMilestoneRequest struct {
-	Title              string
-	Description        string
-	TargetAmount       int64
-	OrderIndex         int
-	IsRecurring        bool
-	RecurrenceType     *models.RecurrenceType
-	RecurrenceInterval int
-	NextDueDate        *time.Time
-}
-
 // CreateGoal creates a new goal with optional milestones
-func (s *GoalService) CreateGoal(ownerID uuid.UUID, req CreateGoalRequest) (*models.Goal, error) {
+func (s *GoalService) CreateGoal(ownerID uuid.UUID, req dto.CreateGoalRequest) (*models.Goal, error) {
 	// Validate
 	if req.TargetAmount <= 0 {
 		return nil, errors.New("target amount must be greater than 0")
@@ -119,17 +95,8 @@ func (s *GoalService) GetGoalsByOwner(ownerID uuid.UUID) ([]models.Goal, error) 
 	return s.repo.Goal.GetGoalsByOwnerID(ownerID)
 }
 
-// UpdateGoalRequest represents a request to update a goal
-type UpdateGoalRequest struct {
-	Title         *string
-	Description   *string
-	BankName      *string
-	AccountNumber *string
-	AccountName   *string
-}
-
 // UpdateGoal updates a goal
-func (s *GoalService) UpdateGoal(goalID, userID uuid.UUID, req UpdateGoalRequest) (*models.Goal, error) {
+func (s *GoalService) UpdateGoal(goalID, userID uuid.UUID, req dto.UpdateGoalRequest) (*models.Goal, error) {
 	goal, err := s.repo.Goal.GetGoalByIDSimple(goalID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -219,7 +186,7 @@ func (s *GoalService) CancelGoal(goalID, userID uuid.UUID) (*models.Goal, error)
 }
 
 // GetGoalProgress returns progress information for a goal
-func (s *GoalService) GetGoalProgress(goalID uuid.UUID) (*GoalProgress, error) {
+func (s *GoalService) GetGoalProgress(goalID uuid.UUID) (*dto.GoalProgress, error) {
 	goal, err := s.repo.Goal.GetGoalByID(goalID)
 	if err != nil {
 		return nil, err
@@ -246,17 +213,17 @@ func (s *GoalService) GetGoalProgress(goalID uuid.UUID) (*GoalProgress, error) {
 	}
 
 	// Calculate milestone progress
-	milestoneProgress := make([]MilestoneProgress, len(milestones))
+	milestoneProgress := make([]dto.MilestoneProgress, len(milestones))
 	for i, milestone := range milestones {
 		milestoneContributions, _ := s.repo.Milestone.GetTotalConfirmedContributionsByMilestone(milestone.ID)
-		milestoneProgress[i] = MilestoneProgress{
+		milestoneProgress[i] = dto.MilestoneProgress{
 			Milestone:       milestone,
 			CurrentAmount:   milestoneContributions,
 			ProgressPercent: calculatePercent(milestoneContributions, milestone.TargetAmount),
 		}
 	}
 
-	return &GoalProgress{
+	return &dto.GoalProgress{
 		Goal:               *goal,
 		TotalContributions: totalContributions,
 		TotalWithdrawals:   totalWithdrawals,
@@ -267,26 +234,8 @@ func (s *GoalService) GetGoalProgress(goalID uuid.UUID) (*GoalProgress, error) {
 	}, nil
 }
 
-// GoalProgress represents goal progress information
-type GoalProgress struct {
-	Goal               models.Goal
-	TotalContributions int64
-	TotalWithdrawals   int64
-	AvailableBalance   int64
-	ProgressPercent    float64
-	ContributorCount   int64
-	Milestones         []MilestoneProgress
-}
-
-// MilestoneProgress represents milestone progress information
-type MilestoneProgress struct {
-	Milestone       models.Milestone
-	CurrentAmount   int64
-	ProgressPercent float64
-}
-
 // CreateMilestone creates a new milestone for a goal
-func (s *GoalService) CreateMilestone(goalID, userID uuid.UUID, req CreateMilestoneRequest) (*models.Milestone, error) {
+func (s *GoalService) CreateMilestone(goalID, userID uuid.UUID, req dto.CreateMilestoneRequest) (*models.Milestone, error) {
 	goal, err := s.repo.Goal.GetGoalByIDSimple(goalID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

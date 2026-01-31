@@ -27,10 +27,10 @@ type Goal struct {
 	Deadline     *time.Time `json:"deadline,omitempty"`
 	Status       GoalStatus `gorm:"not null;default:'OPEN';size:20" json:"status"`
 
-	// Bank account details (optional - required for withdrawal)
-	BankName      string `gorm:"size:100" json:"bank_name,omitempty"`
-	AccountNumber string `gorm:"size:20" json:"account_number,omitempty"`
-	AccountName   string `gorm:"size:255" json:"account_name,omitempty"`
+	// Deposit account details (where goal owner receives withdrawals)
+	DepositBankName      string `gorm:"size:100" json:"deposit_bank_name,omitempty"`
+	DepositAccountNumber string `gorm:"size:20" json:"deposit_account_number,omitempty"`
+	DepositAccountName   string `gorm:"size:255" json:"deposit_account_name,omitempty"`
 
 	CreatedAt time.Time `gorm:"not null" json:"created_at"`
 	UpdatedAt time.Time `gorm:"not null" json:"updated_at"`
@@ -40,6 +40,7 @@ type Goal struct {
 	Contributions []Contribution `gorm:"foreignKey:GoalID;constraint:OnDelete:CASCADE" json:"contributions,omitempty"`
 	Withdrawals   []Withdrawal   `gorm:"foreignKey:GoalID;constraint:OnDelete:CASCADE" json:"withdrawals,omitempty"`
 	Proofs        []Proof        `gorm:"foreignKey:GoalID;constraint:OnDelete:CASCADE" json:"proofs,omitempty"`
+	Refunds       []Refund       `gorm:"foreignKey:GoalID;constraint:OnDelete:CASCADE" json:"refunds,omitempty"`
 }
 
 // BeforeCreate sets UUID before creating goal
@@ -54,7 +55,83 @@ func (g *Goal) BeforeCreate(tx *gorm.DB) error {
 func (Goal) TableName() string {
 	return "goals"
 }
+// RefundStatus represents the status of a refund
+type RefundStatus string
 
+const (
+	RefundStatusPending    RefundStatus = "PENDING"
+	RefundStatusProcessing RefundStatus = "PROCESSING"
+	RefundStatusCompleted  RefundStatus = "COMPLETED"
+	RefundStatusFailed     RefundStatus = "FAILED"
+)
+
+// Refund represents a refund request for a goal
+type Refund struct {
+	ID                uuid.UUID    `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	GoalID            uuid.UUID    `gorm:"type:uuid;not null;index" json:"goal_id"`
+	InitiatedBy       uuid.UUID    `gorm:"type:uuid;not null;index" json:"initiated_by"`
+	RefundPercentage  float64      `gorm:"type:decimal(5,2);not null" json:"refund_percentage"` // 1-100
+	TotalRefundAmount int64        `gorm:"not null" json:"total_refund_amount"`
+	Currency          string       `gorm:"not null;size:3;default:'NGN'" json:"currency"`
+	Reason            string       `gorm:"type:text" json:"reason,omitempty"`
+	Status            RefundStatus `gorm:"not null;default:'PENDING';size:20" json:"status"`
+	CreatedAt         time.Time    `gorm:"not null" json:"created_at"`
+	CompletedAt       *time.Time   `json:"completed_at,omitempty"`
+
+	// Relationships
+	Goal         Goal                `gorm:"constraint:OnDelete:CASCADE"`
+	Disbursements []RefundDisbursement `gorm:"foreignKey:RefundID;constraint:OnDelete:CASCADE" json:"disbursements,omitempty"`
+}
+
+// BeforeCreate sets UUID before creating refund
+func (r *Refund) BeforeCreate(tx *gorm.DB) error {
+	if r.ID == uuid.Nil {
+		r.ID = uuid.New()
+	}
+	return nil
+}
+
+// TableName specifies the table name for Refund
+func (Refund) TableName() string {
+	return "refunds"
+}
+
+// RefundDisbursement represents an individual refund to a contributor
+type RefundDisbursement struct {
+	ID              uuid.UUID    `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	RefundID        uuid.UUID    `gorm:"type:uuid;not null;index" json:"refund_id"`
+	ContributionID  uuid.UUID    `gorm:"type:uuid;not null;index" json:"contribution_id"`
+	UserID          uuid.UUID    `gorm:"type:uuid;not null;index" json:"user_id"`
+	Amount          int64        `gorm:"not null" json:"amount"`
+	Currency        string       `gorm:"not null;size:3;default:'NGN'" json:"currency"`
+
+	// Settlement account snapshot (at time of refund)
+	SettlementBankName      string `gorm:"size:100" json:"settlement_bank_name,omitempty"`
+	SettlementAccountNumber string `gorm:"size:20" json:"settlement_account_number,omitempty"`
+	SettlementAccountName   string `gorm:"size:255" json:"settlement_account_name,omitempty"`
+
+	Status                RefundStatus `gorm:"not null;default:'PENDING';size:20" json:"status"`
+	LedgerTransactionID   *uuid.UUID   `gorm:"type:uuid" json:"ledger_transaction_id,omitempty"`
+	CreatedAt             time.Time    `gorm:"not null" json:"created_at"`
+	CompletedAt           *time.Time   `json:"completed_at,omitempty"`
+
+	// Relationships
+	Refund       Refund       `gorm:"constraint:OnDelete:CASCADE"`
+	Contribution Contribution `gorm:"constraint:OnDelete:CASCADE"`
+}
+
+// BeforeCreate sets UUID before creating refund disbursement
+func (rd *RefundDisbursement) BeforeCreate(tx *gorm.DB) error {
+	if rd.ID == uuid.Nil {
+		rd.ID = uuid.New()
+	}
+	return nil
+}
+
+// TableName specifies the table name for RefundDisbursement
+func (RefundDisbursement) TableName() string {
+	return "refund_disbursements"
+}
 // RecurrenceType represents the type of milestone recurrence
 type RecurrenceType string
 

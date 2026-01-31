@@ -123,3 +123,44 @@ func (e KYCVerified) EventType() string { return "KYCVerified" }
 func (e KYCVerified) EventID() string   { return e.ID }
 func (e KYCVerified) Timestamp() int64  { return e.CreatedAt }
 
+// RefundInitiated event is emitted when a refund is initiated
+type RefundInitiated struct {
+	ID                string
+	RefundID          string
+	GoalID            string
+	InitiatedBy       string
+	RefundPercentage  float64
+	TotalRefundAmount int64
+	CreatedAt         int64
+}
+
+func (e RefundInitiated) EventType() string { return "RefundInitiated" }
+func (e RefundInitiated) EventID() string   { return e.ID }
+func (e RefundInitiated) Timestamp() int64  { return e.CreatedAt }
+
+// RefundCompleted event is emitted when a refund is completed
+type RefundCompleted struct {
+	ID                string
+	RefundID          string
+	GoalID            string
+	TotalRefundAmount int64
+	CompletedAt       int64
+}
+
+func (e RefundCompleted) EventType() string { return "RefundCompleted" }
+func (e RefundCompleted) EventID() string   { return e.ID }
+func (e RefundCompleted) Timestamp() int64  { return e.CompletedAt }
+
+// ContributionRefunded event is emitted when a contribution is refunded
+type ContributionRefunded struct {
+	ID             string
+	ContributionID string
+	UserID         string
+	GoalID         string
+	RefundAmount   int64
+	CreatedAt      int64
+}
+
+func (e ContributionRefunded) EventType() string { return "ContributionRefunded" }
+func (e ContributionRefunded) EventID() string   { return e.ID }
+func (e ContributionRefunded) Timestamp() int64  { return e.CreatedAt }

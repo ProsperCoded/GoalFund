@@ -7,10 +7,12 @@ import (
 )
 
 // SetupRoutes configures all routes for the Users Service
-func SetupRoutes(r *gin.Engine, authService *service.AuthService, kycService *service.KYCService) {
+func SetupRoutes(r *gin.Engine, authService *service.AuthService, userService *service.UserService, kycService *service.KYCService) {
 	// Initialize controllers
-	authController := controllers.NewAuthController(authService)
+	authController := controllers.NewAuthController(authService, userService)
+	userController := controllers.NewUserController(authService, userService)
 	kycController := controllers.NewKYCController(kycService)
+
 
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
@@ -40,6 +42,7 @@ func SetupRoutes(r *gin.Engine, authService *service.AuthService, kycService *se
 	{
 		users.GET("/profile", authController.GetProfile)
 		users.PUT("/profile", authController.UpdateProfile)
+		users.PUT("/settlement-account", userController.UpdateSettlementAccount)
 		
 		// KYC verification routes
 		kyc := users.Group("/kyc")
@@ -47,14 +50,15 @@ func SetupRoutes(r *gin.Engine, authService *service.AuthService, kycService *se
 			kyc.POST("/submit-nin", kycController.SubmitNIN)
 			kyc.GET("/status", kycController.GetKYCStatus)
 		}
-		
-		// TODO: Add more user management endpoints
-		// users.GET("/", authController.ListUsers)           // Admin only
-		// users.GET("/:id", authController.GetUser)          // Admin or self
-		// users.PUT("/:id", authController.UpdateUser)       // Admin or self
-		// users.DELETE("/:id", authController.DeleteUser)    // Admin only
-		// users.POST("/:id/roles", authController.AssignRole) // Admin only
 	}
+
+	// Public user routes (for guest contributions/onboarding)
+	publicUsers := r.Group("/public/users")
+	{
+		publicUsers.POST("/contribution-signup", userController.CreateLightweightUser)
+		publicUsers.POST("/set-password", userController.SetPassword)
+	}
+
 
 	// TODO: Add role management routes
 	// roles := r.Group("/roles")

@@ -4,7 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gofund/services/goals-service/internal/repository"
+	"github.com/gofund/goals-service/internal/dto"
+	"github.com/gofund/goals-service/internal/repository"
 	"github.com/gofund/shared/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -20,15 +21,8 @@ func NewContributionService(repo *repository.Repository) *ContributionService {
 	return &ContributionService{repo: repo}
 }
 
-// CreateContributionRequest represents a request to create a contribution
-type CreateContributionRequest struct {
-	GoalID      uuid.UUID
-	MilestoneID *uuid.UUID
-	Amount      int64
-}
-
 // CreateContribution creates a new contribution intent
-func (s *ContributionService) CreateContribution(userID uuid.UUID, req CreateContributionRequest) (*models.Contribution, error) {
+func (s *ContributionService) CreateContribution(userID uuid.UUID, req dto.CreateContributionRequest) (*models.Contribution, error) {
 	// Validate amount
 	if req.Amount <= 0 {
 		return nil, errors.New("amount must be greater than 0")
@@ -110,18 +104,8 @@ func NewWithdrawalService(repo *repository.Repository) *WithdrawalService {
 	return &WithdrawalService{repo: repo}
 }
 
-// CreateWithdrawalRequest represents a request to create a withdrawal
-type CreateWithdrawalRequest struct {
-	GoalID        uuid.UUID
-	MilestoneID   *uuid.UUID
-	Amount        int64
-	BankName      string
-	AccountNumber string
-	AccountName   string
-}
-
 // CreateWithdrawal creates a new withdrawal request
-func (s *WithdrawalService) CreateWithdrawal(userID uuid.UUID, req CreateWithdrawalRequest) (*models.Withdrawal, error) {
+func (s *WithdrawalService) CreateWithdrawal(userID uuid.UUID, req dto.CreateWithdrawalRequest) (*models.Withdrawal, error) {
 	// Validate amount
 	if req.Amount <= 0 {
 		return nil, errors.New("amount must be greater than 0")
@@ -152,13 +136,13 @@ func (s *WithdrawalService) CreateWithdrawal(userID uuid.UUID, req CreateWithdra
 	accountName := req.AccountName
 
 	if bankName == "" {
-		bankName = goal.BankName
+		bankName = goal.DepositBankName
 	}
 	if accountNumber == "" {
-		accountNumber = goal.AccountNumber
+		accountNumber = goal.DepositAccountNumber
 	}
 	if accountName == "" {
-		accountName = goal.AccountName
+		accountName = goal.DepositAccountName
 	}
 
 	// Validate bank details
@@ -244,17 +228,8 @@ func NewProofService(repo *repository.Repository) *ProofService {
 	return &ProofService{repo: repo}
 }
 
-// CreateProofRequest represents a request to create a proof
-type CreateProofRequest struct {
-	GoalID      uuid.UUID
-	MilestoneID *uuid.UUID
-	Title       string
-	Description string
-	MediaURLs   []string
-}
-
 // CreateProof creates a new proof
-func (s *ProofService) CreateProof(userID uuid.UUID, req CreateProofRequest) (*models.Proof, error) {
+func (s *ProofService) CreateProof(userID uuid.UUID, req dto.CreateProofRequest) (*models.Proof, error) {
 	// Get goal
 	goal, err := s.repo.Goal.GetGoalByIDSimple(req.GoalID)
 	if err != nil {
@@ -324,15 +299,8 @@ func NewVoteService(repo *repository.Repository) *VoteService {
 	return &VoteService{repo: repo}
 }
 
-// CreateVoteRequest represents a request to create a vote
-type CreateVoteRequest struct {
-	ProofID     uuid.UUID
-	IsSatisfied bool
-	Comment     string
-}
-
 // CreateVote creates a new vote or updates existing
-func (s *VoteService) CreateVote(userID uuid.UUID, req CreateVoteRequest) (*models.Vote, error) {
+func (s *VoteService) CreateVote(userID uuid.UUID, req dto.CreateVoteRequest) (*models.Vote, error) {
 	// Get proof
 	proof, err := s.repo.Proof.GetProofByID(req.ProofID)
 	if err != nil {
@@ -387,7 +355,7 @@ func (s *VoteService) GetVotesByProof(proofID uuid.UUID) ([]models.Vote, error) 
 }
 
 // GetVoteStats retrieves vote statistics for a proof
-func (s *VoteService) GetVoteStats(proofID uuid.UUID) (*VoteStats, error) {
+func (s *VoteService) GetVoteStats(proofID uuid.UUID) (*dto.VoteStats, error) {
 	total, satisfied, err := s.repo.Vote.GetVoteStats(proofID)
 	if err != nil {
 		return nil, err
@@ -398,18 +366,10 @@ func (s *VoteService) GetVoteStats(proofID uuid.UUID) (*VoteStats, error) {
 		satisfactionRate = (float64(satisfied) / float64(total)) * 100
 	}
 
-	return &VoteStats{
+	return &dto.VoteStats{
 		TotalVotes:       total,
 		SatisfiedVotes:   satisfied,
 		UnsatisfiedVotes: total - satisfied,
 		SatisfactionRate: satisfactionRate,
 	}, nil
-}
-
-// VoteStats represents vote statistics
-type VoteStats struct {
-	TotalVotes       int64
-	SatisfiedVotes   int64
-	UnsatisfiedVotes int64
-	SatisfactionRate float64
 }

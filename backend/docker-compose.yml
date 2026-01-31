@@ -53,6 +53,23 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-notifications:
+    image: postgis/postgis
+    container_name: gofund-postgres-notifications
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: notifications_db
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres-notifications-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # RabbitMQ
   rabbitmq:
     image: rabbitmq:4.1-management-alpine
@@ -301,6 +318,18 @@ services:
       DD_SERVICE: notifications-service
       DD_ENV: ${DD_ENV:-dev}
       DD_VERSION: ${DD_VERSION:-1.0.0}
+      NOTIFICATIONS_DB_HOST: postgres-notifications
+      NOTIFICATIONS_DB_PORT: 5432
+      NOTIFICATIONS_DB_USER: postgres
+      NOTIFICATIONS_DB_PASSWORD: postgres
+      NOTIFICATIONS_DB_NAME: notifications_db
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@gofund.com}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-GoFund}
+
     expose:
       - "8085"
     depends_on:
@@ -308,8 +337,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      postgres-notifications:
+        condition: service_healthy
       datadog-agent:
         condition: service_started
+
     restart: unless-stopped
 
 volumes:
@@ -319,3 +351,4 @@ volumes:
   mongodb-payments-data:
   rabbitmq-data:
   redis-data:
+  postgres-notifications-data:

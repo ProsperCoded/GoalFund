@@ -43,11 +43,12 @@ func LoadConfig() *Config {
 		Port: getEnv("PORT", "8085"),
 
 		// Database
-		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     getEnv("DB_PORT", "5432"),
-		DBUser:     getEnv("DB_USER", "postgres"),
-		DBPassword: getEnv("DB_PASSWORD", "postgres"),
-		DBName:     getEnv("DB_NAME", "notifications_db"),
+		DBHost:     getEnv("NOTIFICATIONS_DB_HOST", "localhost"),
+		DBPort:     getEnv("NOTIFICATIONS_DB_PORT", "5432"),
+		DBUser:     getEnv("NOTIFICATIONS_DB_USER", "postgres"),
+		DBPassword: getEnv("NOTIFICATIONS_DB_PASSWORD", "postgres"),
+		DBName:     getEnv("NOTIFICATIONS_DB_NAME", "notifications_db"),
+
 
 		// RabbitMQ
 		RabbitMQURL:      getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),

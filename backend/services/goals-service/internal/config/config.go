@@ -60,18 +60,20 @@ func LoadConfig() *Config {
 			Env:  getEnv("ENV", "development"),
 		},
 		Database: DatabaseConfig{
-			Host:     getEnv("DB_HOST", "localhost"),
-			Port:     getEnv("DB_PORT", "5432"),
-			User:     getEnv("DB_USER", "postgres"),
-			Password: getEnv("DB_PASSWORD", "postgres"),
-			DBName:   getEnv("DB_NAME", "gofund"),
-			SSLMode:  getEnv("DB_SSLMODE", "disable"),
+			Host:     getEnv("GOALS_DB_HOST", "localhost"),
+			Port:     getEnv("GOALS_DB_PORT", "5432"),
+			User:     getEnv("GOALS_DB_USER", "postgres"),
+			Password: getEnv("GOALS_DB_PASSWORD", "postgres"),
+			DBName:   getEnv("GOALS_DB_NAME", "goals_db"),
+			SSLMode:  getEnv("GOALS_DB_SSLMODE", "disable"),
 		},
+
 		RabbitMQ: RabbitMQConfig{
 			URL:       getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
 			Exchange:  getEnv("RABBITMQ_EXCHANGE", "gofund_events"),
-			QueueName: getEnv("RABBITMQ_QUEUE", "goals_service_queue"),
+			QueueName: getEnv("RABBITMQ_QUEUE", "goals_queue"),
 		},
+
 		Redis: RedisConfig{
 			Host:     getEnv("REDIS_HOST", "localhost"),
 			Port:     getEnv("REDIS_PORT", "6379"),

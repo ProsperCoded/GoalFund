@@ -40,8 +40,24 @@ GoFund solves this by enforcing **ledger-based accounting**, **verified payments
 
 - Users can create funding goals with:
 
-  - Title, description, target amount
-  - Deadline
+  - Title, description, target amount (initial milestone)
+  - Optional deadline
+
+- **Continuous Funding Model:**
+
+  - Goals can be funded continuously beyond the target amount
+  - Multiple withdrawal cycles are supported
+  - Goals remain OPEN for contributions unless owner explicitly closes them
+  - Target amount serves as an initial milestone, not a hard cap
+
+- **Milestone-Based Progress Tracking:**
+
+  - Goals can be broken down into multiple milestones
+  - Each milestone has its own target amount and description
+  - Support for **recurring milestones** (e.g., semester tuition, monthly rent)
+  - Recurring types: WEEKLY, MONTHLY, SEMESTER, YEARLY
+  - Withdrawals can be tied to milestone completion
+  - Proofs can be submitted per milestone for granular transparency
 
 - Goals progress is derived from ledger entries, not stored balances
 
@@ -67,16 +83,24 @@ GoFund solves this by enforcing **ledger-based accounting**, **verified payments
 
 ### 4.5 Withdrawals
 
-- Goal owners can request withdrawals
-- Withdrawals are ledger-backed and auditable
+- Goal owners can request withdrawals at any time once funds are available
+- **Bank account details required** - owners must provide bank information for disbursement
+- Bank details can be added during goal creation or updated later
+- **No verification required before withdrawal** - owners have direct access to contributed funds
+- Multiple withdrawals are supported (continuous funding model)
+- Withdrawals are ledger-backed and fully auditable
+- Goal can continue receiving funds after withdrawal (unless closed by owner)
+- Withdrawals can be tied to specific milestone completion
 
-### 4.6 Proof of Accomplishment
+### 4.6 Proof of Accomplishment & Community Feedback
 
-- Goal owners submit proof after withdrawal
-- Proofs require community verification
-
-  - Minimum 3 confirmations
-  - Or 5% of contributors (for large goals)
+- Goal owners can submit proof **after withdrawal** (optional but encouraged)
+- Proofs serve as **transparency and accountability** mechanism (not a withdrawal gate)
+- Community voting reflects **satisfaction level** with how funds were used:
+  - Contributors vote TRUE (satisfied) or FALSE (not satisfied)
+  - Voting thresholds: Minimum 3 votes OR 5% of contributors
+  - Votes are visible to all contributors for transparency
+- **Key Point:** Voting does NOT block or reverse withdrawals - it's purely for reputation and trust-building
 
 ### 4.7 Real-Time Updates
 
@@ -121,8 +145,9 @@ GoFund solves this by enforcing **ledger-based accounting**, **verified payments
 - Static file serving (if needed)
 
 **Routing:**
+
 - `/api/v1/users/*` → Users Service (port 8084)
-- `/api/v1/goals/*` → Goals Service (port 8083)  
+- `/api/v1/goals/*` → Goals Service (port 8083)
 - `/api/v1/ledger/*` → Ledger Service (port 8082)
 - `/api/v1/payments/*` → Payments Service (port 8081)
 - `/api/v1/notifications/*` → Notifications Service (port 8085)
@@ -189,18 +214,34 @@ INITIATED → PENDING → VERIFIED → FAILED
 **Responsibilities:**
 
 - Goal lifecycle management
+- **Milestone management** (including recurring milestones)
+- Continuous funding tracking
 - Contribution intent tracking
+- Withdrawal request handling (with bank account validation)
 - Proof submission
-- Voting & verification logic
+- Community voting & feedback logic
 
 **Goal States:**
-OPEN → FUNDED → WITHDRAWN → PROOF_SUBMITTED → VERIFIED
+
+- **OPEN** - Accepting contributions (default state)
+- **CLOSED** - Owner has stopped accepting new contributions
+- **CANCELLED** - Goal was cancelled
+
+**Key Behaviors:**
+
+- Goals can receive unlimited contributions (continuous funding)
+- Withdrawals can happen multiple times while still OPEN
+- Owner can transition OPEN → CLOSED at any time
+- Milestones can be one-time or recurring (WEEKLY, MONTHLY, SEMESTER, YEARLY)
+- Bank account details required for withdrawals
 
 **Database Tables:**
 
-- goals
-- contributions
-- proofs
+- goals (with bank account fields)
+- **milestones** (supports recurring)
+- contributions (with milestone_id reference)
+- **withdrawals** (with bank details snapshot)
+- proofs (with milestone_id reference)
 - votes
 
 ---
@@ -237,8 +278,9 @@ OPEN → FUNDED → WITHDRAWN → PROOF_SUBMITTED → VERIFIED
 **Consumes Events:**
 
 - PaymentVerified
-- GoalFunded
-- ProofVerified
+- ContributionConfirmed
+- WithdrawalRequested
+- ProofVoted
 
 ---
 
@@ -248,11 +290,12 @@ OPEN → FUNDED → WITHDRAWN → PROOF_SUBMITTED → VERIFIED
 
 **Core Events:**
 
-- PaymentVerified
-- LedgerEntryCreated
-- GoalFunded
-- ProofSubmitted
-- ProofVerified
+- **PaymentVerified** - Emitted by Payments Service when payment succeeds
+- **ContributionConfirmed** - Emitted by Goals Service after processing payment
+- **WithdrawalRequested** - Emitted by Goals Service when owner requests withdrawal
+- **WithdrawalCompleted** - Emitted by Ledger Service after successful withdrawal
+- **ProofSubmitted** - Emitted by Goals Service when proof is submitted
+- **ProofVoted** - Emitted when a contributor casts a vote on proof
 
 **Rules:**
 

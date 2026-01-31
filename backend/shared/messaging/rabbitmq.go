@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/gofund/shared/metrics"
 	"github.com/streadway/amqp"
 )
 
@@ -72,8 +74,10 @@ func NewRabbitMQPublisher(conn *RabbitMQConnection, exchangeName string) (*Rabbi
 	}, nil
 }
 
-// Publish publishes an event to RabbitMQ
+// Publish publishes an event to RabbitMQ with Datadog metrics
 func (p *RabbitMQPublisher) Publish(eventType string, event interface{}) error {
+	start := time.Now()
+	
 	body, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("failed to marshal event: %w", err)
@@ -89,13 +93,20 @@ func (p *RabbitMQPublisher) Publish(eventType string, event interface{}) error {
 		amqp.Publishing{
 			ContentType: "application/json",
 			Body:        body,
+			Timestamp:   time.Now(),
 		},
 	)
+	
+	duration := time.Since(start)
+	
+	// Track event publishing metrics
 	if err != nil {
+		metrics.TrackEventPublished(eventType, false, duration)
 		return fmt.Errorf("failed to publish event: %w", err)
 	}
-
-	log.Printf("Published event: %s", eventType)
+	
+	metrics.TrackEventPublished(eventType, true, duration)
+	log.Printf("Published event: %s (duration: %v)", eventType, duration)
 	return nil
 }
 
@@ -142,7 +153,7 @@ func NewRabbitMQConsumer(conn *RabbitMQConnection, exchangeName, queueName strin
 	}, nil
 }
 
-// Consume consumes events from RabbitMQ
+// Consume consumes events from RabbitMQ with Datadog metrics
 func (c *RabbitMQConsumer) Consume(eventType string, handler func([]byte) error) error {
 	routingKey := fmt.Sprintf("events.%s", eventType)
 
@@ -173,8 +184,24 @@ func (c *RabbitMQConsumer) Consume(eventType string, handler func([]byte) error)
 
 	go func() {
 		for msg := range msgs {
-			if err := handler(msg.Body); err != nil {
+			start := time.Now()
+			
+			// Calculate event age (time since published)
+			var eventAge time.Duration
+			if !msg.Timestamp.IsZero() {
+				eventAge = time.Since(msg.Timestamp)
+			}
+			
+			// Handle the message
+			err := handler(msg.Body)
+			processingDuration := time.Since(start)
+			
+			// Track event consumption metrics
+			if err != nil {
 				log.Printf("Error handling message: %v", err)
+				metrics.TrackEventConsumed(eventType, false, processingDuration, eventAge)
+			} else {
+				metrics.TrackEventConsumed(eventType, true, processingDuration, eventAge)
 			}
 		}
 	}()

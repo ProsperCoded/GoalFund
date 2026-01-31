@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gofund/shared/models"
+	gormtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorm.io/gorm.v1"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -22,17 +23,18 @@ type Config struct {
 	LogLevel logger.LogLevel
 }
 
-// NewGormDB creates a new GORM database connection
+// NewGormDB creates a new GORM database connection with Datadog tracing
 func NewGormDB(cfg Config) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.DBName, cfg.SSLMode)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+	// Open database with Datadog tracing enabled
+	db, err := gormtrace.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(cfg.LogLevel),
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
 		},
-	})
+	}, gormtrace.WithServiceName(fmt.Sprintf("gofund-db-%s", cfg.DBName)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
@@ -48,6 +50,7 @@ func NewGormDB(cfg Config) (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
+	log.Printf("Database connection established with Datadog tracing: %s", cfg.DBName)
 	return db, nil
 }
 

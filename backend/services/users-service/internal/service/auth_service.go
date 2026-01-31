@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gofund/shared/jwt"
+	"github.com/gofund/shared/metrics"
 	"github.com/gofund/shared/models"
 	"github.com/gofund/shared/password"
 	"github.com/gofund/users-service/internal/repository"
@@ -98,15 +99,18 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 	// Get user by email
 	user, err := s.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
+		metrics.TrackLoginFailure("invalid_email")
 		return nil, errors.New("invalid credentials")
 	}
 
 	// Verify password
 	valid, err := password.VerifyPassword(req.Password, user.PasswordHash)
 	if err != nil {
+		metrics.TrackLoginFailure("verification_error")
 		return nil, errors.New("authentication failed")
 	}
 	if !valid {
+		metrics.TrackLoginFailure("invalid_password")
 		return nil, errors.New("invalid credentials")
 	}
 
@@ -114,6 +118,7 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 	roles := []string{string(user.Role)}
 	tokenPair, err := s.jwtService.GenerateTokenPair(user.ID.String(), user.Email, roles)
 	if err != nil {
+		metrics.TrackLoginFailure("token_generation_failed")
 		return nil, errors.New("failed to generate tokens")
 	}
 
@@ -131,8 +136,15 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 	}
 
 	if err := s.sessionRepo.CreateSession(session); err != nil {
+		metrics.TrackLoginFailure("session_creation_failed")
 		return nil, errors.New("failed to create session")
 	}
+
+	// Track successful login and metrics
+	metrics.TrackLoginSuccess(user.ID.String())
+	metrics.TrackSessionCreated(user.ID.String())
+	metrics.TrackJWTIssued("access_token")
+	metrics.TrackJWTIssued("refresh_token")
 
 	return &AuthResponse{
 		User: &UserResponse{
@@ -228,6 +240,12 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 	if err := s.sessionRepo.CreateSession(session); err != nil {
 		return nil, errors.New("failed to create session")
 	}
+
+	// Track user registration and metrics
+	metrics.TrackUserRegistration()
+	metrics.TrackSessionCreated(user.ID.String())
+	metrics.TrackJWTIssued("access_token")
+	metrics.TrackJWTIssued("refresh_token")
 
 	return &AuthResponse{
 		User: &UserResponse{

@@ -1,0 +1,98 @@
+# Datadog Agent Configuration for GoFund
+# This file provides additional configuration for the Datadog agent
+
+## Log Collection Configuration
+logs_enabled: true
+logs_config:
+  container_collect_all: true
+  processing_rules:
+    - type: multi_line
+      name: go_log_pattern
+      pattern: ^\d{4}
+
+## APM Configuration
+apm_config:
+  enabled: true
+  env: dev
+
+  # Analyzed spans for custom metrics
+  analyzed_spans:
+    users-service|http.request: 1
+    payments-service|http.request: 1
+    goals-service|http.request: 1
+    ledger-service|http.request: 1
+    notifications-service|http.request: 1
+
+## Process Monitoring
+process_config:
+  enabled: true
+
+## Container Monitoring
+container_exclude: "name:datadog-agent"
+container_include: "name:gofund-.*"
+
+## Custom Checks and Integrations
+# PostgreSQL Integration
+postgres:
+  instances:
+    - host: postgres-users
+      port: 5432
+      username: postgres
+      password: postgres
+      dbname: users_db
+      tags:
+        - service:users-service
+        - db:users_db
+
+    - host: postgres-goals
+      port: 5432
+      username: postgres
+      password: postgres
+      dbname: goals_db
+      tags:
+        - service:goals-service
+        - db:goals_db
+
+    - host: postgres-ledger
+      port: 5432
+      username: postgres
+      password: postgres
+      dbname: ledger_db
+      tags:
+        - service:ledger-service
+        - db:ledger_db
+
+# MongoDB Integration
+mongo:
+  instances:
+    - hosts:
+        - mongodb-payments:27017
+      username: admin
+      password: admin123
+      database: payments_db
+      tags:
+        - service:payments-service
+        - db:payments_db
+
+# Redis Integration
+redis:
+  instances:
+    - host: redis
+      port: 6379
+      tags:
+        - service:gofund-cache
+
+# RabbitMQ Integration
+rabbitmq:
+  instances:
+    - rabbitmq_api_url: http://rabbitmq:15672/api/
+      username: guest
+      password: guest
+      tags:
+        - service:gofund-messaging
+
+## Tags
+tags:
+  - project:gofund
+  - platform:docker
+  - architecture:microservices

@@ -85,6 +85,31 @@ services:
       timeout: 5s
       retries: 5
 
+  # Datadog Agent
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:7
+    container_name: gofund-datadog-agent
+    environment:
+      DD_API_KEY: ${DD_API_KEY}
+      DD_SITE: ${DD_SITE:-datadoghq.com}
+      DD_APM_ENABLED: "true"
+      DD_APM_NON_LOCAL_TRAFFIC: "true"
+      DD_LOGS_ENABLED: "true"
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
+      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
+      DD_PROCESS_AGENT_ENABLED: "true"
+      DD_CONTAINER_EXCLUDE: "name:datadog-agent"
+      DD_TAGS: "env:${DD_ENV:-dev} service:gofund project:gofund"
+    ports:
+      - "8126:8126" # APM traces
+      - "8125:8125/udp" # DogStatsD metrics
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    restart: unless-stopped
+
   # MongoDB for Payments Service
   mongodb-payments:
     image: mongo:latest
@@ -138,6 +163,11 @@ services:
       USERS_DB_NAME: users_db
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis://redis:6379
+      DD_AGENT_HOST: datadog-agent
+      DD_TRACE_AGENT_PORT: 8126
+      DD_SERVICE: users-service
+      DD_ENV: ${DD_ENV:-dev}
+      DD_VERSION: ${DD_VERSION:-1.0.0}
     expose:
       - "8084"
     depends_on:
@@ -147,6 +177,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      datadog-agent:
+        condition: service_started
     restart: unless-stopped
 
   # Goals Service
@@ -166,6 +198,11 @@ services:
       GOALS_DB_NAME: goals_db
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis://redis:6379
+      DD_AGENT_HOST: datadog-agent
+      DD_TRACE_AGENT_PORT: 8126
+      DD_SERVICE: goals-service
+      DD_ENV: ${DD_ENV:-dev}
+      DD_VERSION: ${DD_VERSION:-1.0.0}
     expose:
       - "8083"
     depends_on:
@@ -175,6 +212,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      datadog-agent:
+        condition: service_started
     restart: unless-stopped
 
   # Ledger Service
@@ -194,6 +233,11 @@ services:
       LEDGER_DB_NAME: ledger_db
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis://redis:6379
+      DD_AGENT_HOST: datadog-agent
+      DD_TRACE_AGENT_PORT: 8126
+      DD_SERVICE: ledger-service
+      DD_ENV: ${DD_ENV:-dev}
+      DD_VERSION: ${DD_VERSION:-1.0.0}
     expose:
       - "8082"
     depends_on:
@@ -203,6 +247,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      datadog-agent:
+        condition: service_started
     restart: unless-stopped
 
   # Payments Service
@@ -220,6 +266,11 @@ services:
       MONGODB_URI: mongodb://admin:admin123@mongodb-payments:27017/payments_db?authSource=admin
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis://redis:6379
+      DD_AGENT_HOST: datadog-agent
+      DD_TRACE_AGENT_PORT: 8126
+      DD_SERVICE: payments-service
+      DD_ENV: ${DD_ENV:-dev}
+      DD_VERSION: ${DD_VERSION:-1.0.0}
     expose:
       - "8081"
     depends_on:
@@ -229,6 +280,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      datadog-agent:
+        condition: service_started
     restart: unless-stopped
 
   # Notifications Service
@@ -243,6 +296,11 @@ services:
       PORT: 8085
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       REDIS_URL: redis://redis:6379
+      DD_AGENT_HOST: datadog-agent
+      DD_TRACE_AGENT_PORT: 8126
+      DD_SERVICE: notifications-service
+      DD_ENV: ${DD_ENV:-dev}
+      DD_VERSION: ${DD_VERSION:-1.0.0}
     expose:
       - "8085"
     depends_on:
@@ -250,6 +308,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      datadog-agent:
+        condition: service_started
     restart: unless-stopped
 
 volumes:

@@ -10,10 +10,12 @@ import (
 	"github.com/gofund/shared/database"
 	"github.com/gofund/shared/jwt"
 	"github.com/gofund/shared/messaging"
+	"github.com/gofund/shared/metrics"
 	"github.com/gofund/users-service/internal/repository"
 	"github.com/gofund/users-service/internal/router"
 	"github.com/gofund/users-service/internal/service"
 	"github.com/joho/godotenv"
+	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
 	"gorm.io/gorm/logger"
 )
 
@@ -22,6 +24,19 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Printf("No .env file found, using system environment variables")
 	}
+
+	// Initialize Datadog tracing and metrics
+	serviceName := getEnv("DD_SERVICE", "users-service")
+	env := getEnv("DD_ENV", "dev")
+	version := getEnv("DD_VERSION", "1.0.0")
+	
+	if err := metrics.InitDatadog(serviceName, env, version); err != nil {
+		log.Printf("Warning: Failed to initialize Datadog: %v", err)
+	} else {
+		log.Printf("Datadog initialized successfully for %s", serviceName)
+	}
+	defer metrics.StopDatadog()
+
 	// Initialize database
 	dbConfig := database.Config{
 		Host:     getEnv("USERS_DB_HOST", "localhost"),
@@ -94,6 +109,9 @@ func main() {
 	// Initialize Gin router
 	r := gin.Default()
 
+	// Add Datadog APM middleware (automatically tracks HTTP requests)
+	r.Use(gintrace.Middleware(serviceName))
+	
 	// Add middleware for logging and recovery
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())

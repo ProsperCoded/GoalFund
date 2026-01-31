@@ -1,0 +1,14 @@
+{{define "content"}}
+<h2>Payment Verified</h2>
+<p>Hi {{.Name}},</p>
+<p>
+  Your contribution to <strong>{{.GoalTitle}}</strong> has been successfully
+  verified.
+</p>
+<div class="highlight">
+  <strong>Amount:</strong> {{.Currency}} {{.Amount}}<br />
+  <strong>Transaction Ref:</strong> {{.Reference}}
+</div>
+<p>Thank you for your support!</p>
+<a href="{{.ActionURL}}" class="button">View Goal</a>
+{{end}}

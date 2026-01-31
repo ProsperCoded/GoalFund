@@ -1,0 +1,13 @@
+{{define "content"}}
+<h2>New Contribution Received!</h2>
+<p>Hello {{.OwnerName}},</p>
+<p>
+  Great news! Someone just contributed to your goal
+  <strong>{{.GoalTitle}}</strong>.
+</p>
+<div class="highlight">
+  <strong>Contributor:</strong> {{.ContributorName}}<br />
+  <strong>Amount:</strong> {{.Currency}} {{.Amount}}
+</div>
+<a href="{{.ActionURL}}" class="button">See Progress</a>
+{{end}}

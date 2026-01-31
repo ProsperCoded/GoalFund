@@ -67,21 +67,19 @@ func (s *notificationService) CreateNotification(req dto.CreateNotificationReque
 
 // sendEmailNotification sends an email for a notification
 func (s *notificationService) sendEmailNotification(notification *models.Notification) {
-	// Check user preferences
+	// 1. Check user preferences
 	preferences, err := s.preferenceRepo.GetByUserID(notification.UserID)
 	if err != nil {
 		log.Printf("Failed to get preferences for user %s: %v", notification.UserID, err)
-		// Create default preferences if not found
 		if err := s.preferenceRepo.CreateDefault(notification.UserID); err != nil {
 			log.Printf("Failed to create default preferences: %v", err)
 		}
-		// Assume email is enabled by default
 	} else if !preferences.EmailEnabled {
 		log.Printf("Email notifications disabled for user %s", notification.UserID)
 		return
 	}
 
-	// Get user email from notification data
+	// 2. Get user email from notification data
 	email, ok := notification.Data["email"].(string)
 	if !ok || email == "" {
 		log.Printf("No email found in notification data for user %s", notification.UserID)
@@ -89,48 +87,26 @@ func (s *notificationService) sendEmailNotification(notification *models.Notific
 		return
 	}
 
-	// Send email
-	subject := notification.Title
-	htmlBody := fmt.Sprintf(`
-		<!DOCTYPE html>
-		<html>
-		<head>
-			<meta charset="UTF-8">
-			<style>
-				body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-				.container { max-width: 600px; margin: 0 auto; padding: 20px; }
-				.header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }
-				.content { padding: 20px; background-color: #f9f9f9; }
-				.footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
-			</style>
-		</head>
-		<body>
-			<div class="container">
-				<div class="header">
-					<h1>GoFund</h1>
-				</div>
-				<div class="content">
-					<h2>%s</h2>
-					<p>%s</p>
-				</div>
-				<div class="footer">
-					<p>&copy; 2026 GoFund. All rights reserved.</p>
-					<p>This is an automated message, please do not reply.</p>
-				</div>
-			</div>
-		</body>
-		</html>
-	`, notification.Title, notification.Message)
+	// 3. Map NotificationType to EmailType (Mapping is 1-to-1 as requested)
+	emailType := models.EmailType(notification.Type)
 
-	err = s.emailService.SendEmail(email, subject, htmlBody, notification.Message)
-	if err != nil {
+	// 4. Prepare Payload
+	payload := models.EmailPayload{
+		Type:      emailType,
+		Recipient: email,
+		Subject:   notification.Title,
+		Data:      notification.Data,
+	}
+
+	// 5. Send Email
+	if err := s.emailService.Send(payload); err != nil {
 		log.Printf("Failed to send email for notification %s: %v", notification.ID, err)
 		s.notificationRepo.MarkAsEmailFailed(notification.ID, err.Error())
 		s.notificationRepo.IncrementRetryCount(notification.ID)
 		return
 	}
 
-	// Mark as sent
+	// 6. Mark as sent
 	if err := s.notificationRepo.MarkAsEmailSent(notification.ID); err != nil {
 		log.Printf("Failed to mark notification as sent: %v", err)
 	}

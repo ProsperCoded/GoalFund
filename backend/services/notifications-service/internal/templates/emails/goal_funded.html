@@ -1,0 +1,13 @@
+{{define "content"}}
+<h2>Congratulations! Your Goal is Funded!</h2>
+<p>Hello {{.Name}},</p>
+<p>
+  Amazing news! Your goal <strong>{{.GoalTitle}}</strong> has reached its target
+  funding amount.
+</p>
+<div class="highlight">
+  <strong>Total Funded:</strong> {{.Currency}} {{.Amount}}
+</div>
+<p>You can now proceed with your next steps or request a withdrawal.</p>
+<a href="{{.ActionURL}}" class="button">View Goal</a>
+{{end}}

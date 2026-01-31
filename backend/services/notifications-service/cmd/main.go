@@ -44,11 +44,9 @@ func main() {
 	notificationRepo := repository.NewNotificationRepository(db)
 	preferenceRepo := repository.NewPreferenceRepository(db)
 
-	// Initialize email service
-	emailService, err := service.NewEmailService(cfg)
-	if err != nil {
-		log.Printf("Warning: Failed to initialize email service: %v", err)
-	}
+	// Initialize services
+	renderService := service.NewRenderService("internal/templates/emails")
+	emailService := service.NewEmailService(cfg, renderService)
 
 	// Initialize notification service
 	notificationService := service.NewNotificationService(

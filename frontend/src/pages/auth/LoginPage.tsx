@@ -22,9 +22,11 @@ import {
   FadeIn,
   BlurText,
 } from "@/components/animations"
+import { useAuth } from "@/contexts"
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -37,11 +39,20 @@ export function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await login({
+        email: formData.email,
+        password: formData.password,
+      })
+      
+      // Redirect to home page after successful login
+      navigate("/")
+    } catch (error) {
+      // Error is handled in AuthContext with toast
+      console.error("Login error:", error)
+    } finally {
       setIsLoading(false)
-      navigate("/dashboard")
-    }, 1500)
+    }
   }
 
   return (

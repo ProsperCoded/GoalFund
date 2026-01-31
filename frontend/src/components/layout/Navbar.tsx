@@ -1,13 +1,23 @@
 import { Link, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState } from "react"
-import { Menu, X, LogIn, UserPlus } from "lucide-react"
+import { Menu, X, LogIn, UserPlus, LogOut, User, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { GradientText } from "@/components/animations"
+import { useAuth } from "@/contexts"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
+  const { user, isAuthenticated, logout } = useAuth()
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -16,6 +26,18 @@ export function Navbar() {
   ]
 
   const isActive = (path: string) => location.pathname === path
+
+  const handleLogout = async () => {
+    await logout()
+  }
+
+  const getUserInitials = () => {
+    if (!user) return "U"
+    if (user.first_name && user.last_name) {
+      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+    }
+    return user.email[0].toUpperCase()
+  }
 
   return (
     <motion.nav
@@ -51,20 +73,63 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* Auth Buttons */}
+          {/* Auth Buttons or User Menu */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-                <LogIn className="w-4 h-4" />
-                Login
-              </Button>
-            </Link>
-            <Link to="/register">
-              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-                <UserPlus className="w-4 h-4" />
-                Sign Up
-              </Button>
-            </Link>
+            {isAuthenticated && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="gap-2 h-9 px-2">
+                    <Avatar className="w-7 h-7">
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium">{user.first_name || user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium">{user.email}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {user.kyc_verified ? "Verified" : "Not verified"}
+                    </p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer">
+                      <User className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="cursor-pointer">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+                    <LogIn className="w-4 h-4" />
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+                    <UserPlus className="w-4 h-4" />
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -104,18 +169,54 @@ export function Navbar() {
                 </Link>
               ))}
               <div className="pt-2 border-t border-border space-y-2">
-                <Link to="/login" onClick={() => setIsOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start gap-2">
-                    <LogIn className="w-4 h-4" />
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/register" onClick={() => setIsOpen(false)}>
-                  <Button className="w-full justify-start gap-2 bg-primary text-primary-foreground">
-                    <UserPlus className="w-4 h-4" />
-                    Sign Up
-                  </Button>
-                </Link>
+                {isAuthenticated && user ? (
+                  <>
+                    <div className="px-3 py-2">
+                      <p className="text-sm font-medium">{user.email}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.kyc_verified ? "Verified" : "Not verified"}
+                      </p>
+                    </div>
+                    <Link to="/dashboard" onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start gap-2">
+                        <User className="w-4 h-4" />
+                        Dashboard
+                      </Button>
+                    </Link>
+                    <Link to="/settings" onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start gap-2">
+                        <Settings className="w-4 h-4" />
+                        Settings
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-2 text-destructive hover:text-destructive"
+                      onClick={() => {
+                        handleLogout()
+                        setIsOpen(false)
+                      }}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start gap-2">
+                        <LogIn className="w-4 h-4" />
+                        Login
+                      </Button>
+                    </Link>
+                    <Link to="/register" onClick={() => setIsOpen(false)}>
+                      <Button className="w-full justify-start gap-2 bg-primary text-primary-foreground">
+                        <UserPlus className="w-4 h-4" />
+                        Sign Up
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

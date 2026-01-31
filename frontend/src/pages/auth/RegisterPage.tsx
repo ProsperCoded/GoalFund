@@ -27,13 +27,16 @@ import {
   StaggerContainer,
   StaggerItem,
 } from "@/components/animations"
+import { useAuth } from "@/contexts"
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const { register } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     acceptTerms: false,
@@ -50,11 +53,22 @@ export function RegisterPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await register({
+        email: formData.email,
+        password: formData.password,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+      })
+      
+      // Redirect to onboarding page after successful registration
+      navigate("/onboarding")
+    } catch (error) {
+      // Error is handled in AuthContext with toast
+      console.error("Registration error:", error)
+    } finally {
       setIsLoading(false)
-      navigate("/dashboard")
-    }, 1500)
+    }
   }
 
   const features = [
@@ -207,20 +221,37 @@ export function RegisterPage() {
 
           {/* Register Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm">Full Name</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="John Doe"
-                icon={<User className="w-4 h-4" />}
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                required
-                className="bg-muted/30 border-border/50 focus:border-primary/50"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="text-sm">First Name</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="John"
+                  icon={<User className="w-4 h-4" />}
+                  value={formData.firstName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, firstName: e.target.value })
+                  }
+                  required
+                  className="bg-muted/30 border-border/50 focus:border-primary/50"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-sm">Last Name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Doe"
+                  value={formData.lastName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
+                  required
+                  className="bg-muted/30 border-border/50 focus:border-primary/50"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

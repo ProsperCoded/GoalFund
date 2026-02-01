@@ -190,3 +190,47 @@ func (gc *GoalController) CompleteMilestone(c *gin.Context) {
 		"next":      nextMilestone,
 	})
 }
+
+// GetMyGoals retrieves all goals created by the authenticated user
+func (gc *GoalController) GetMyGoals(c *gin.Context) {
+	userIDStr := c.GetHeader("X-User-ID")
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+
+	goals, total, err := gc.goalService.ListUserGoals(userID, page, pageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"goals": goals,
+		"total": total,
+		"page":  page,
+		"limit": pageSize,
+	})
+}
+
+// GetGoalMilestones retrieves all milestones for a goal
+func (gc *GoalController) GetGoalMilestones(c *gin.Context) {
+	goalIDStr := c.Param("goalId")
+	goalID, err := uuid.Parse(goalIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid goal ID"})
+		return
+	}
+
+	milestones, err := gc.goalService.GetGoalMilestones(goalID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"milestones": milestones})
+}

@@ -25,8 +25,7 @@ export function MyGoalsPage() {
       setGoals(response.goals || [])
     } catch (error) {
       console.error("Failed to fetch goals:", error)
-      // Use mock data for demo
-      setGoals(getMockGoals())
+      setGoals([])
     } finally {
       setIsLoading(false)
     }
@@ -148,66 +147,4 @@ export function MyGoalsPage() {
   )
 }
 
-// Mock data
-function getMockGoals(): Goal[] {
-  return [
-    {
-      id: "1",
-      user_id: "user1",
-      title: "Community Borehole Project",
-      description: "Help us provide clean water to our community. This project will serve over 500 families in the area.",
-      target_amount: 5000000,
-      current_amount: 3250000,
-      currency: "NGN",
-      status: "open",
-      is_public: true,
-      contributor_count: 45,
-      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      user_id: "user1",
-      title: "School Fees Fund",
-      description: "Raising funds for my final year university tuition. Your support means the world to me!",
-      target_amount: 500000,
-      current_amount: 500000,
-      currency: "NGN",
-      status: "open",
-      is_public: false,
-      contributor_count: 12,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "3",
-      user_id: "user1",
-      title: "Medical Emergency Fund",
-      description: "Help with medical expenses for a family member going through a difficult time.",
-      target_amount: 2000000,
-      current_amount: 750000,
-      currency: "NGN",
-      status: "open",
-      is_public: true,
-      contributor_count: 28,
-      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "4",
-      user_id: "user1",
-      title: "Wedding Contribution",
-      description: "Collecting contributions for our upcoming wedding celebration.",
-      target_amount: 3000000,
-      current_amount: 3500000,
-      currency: "NGN",
-      status: "closed",
-      is_public: false,
-      contributor_count: 67,
-      created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ]
-}
+

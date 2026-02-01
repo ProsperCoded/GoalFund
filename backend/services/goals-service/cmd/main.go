@@ -118,7 +118,9 @@ func main() {
 	{
 		// Public routes (or read-only)
 		api.GET("", goalController.ListPublicGoals)
+		api.GET("/list", goalController.ListPublicGoals) // Alias for frontend compatibility
 		api.GET("/:id", goalController.GetGoal)
+		api.GET("/view/:id", goalController.GetGoal) // Alias for frontend compatibility
 		api.GET("/:id/progress", goalController.GetGoalProgress)
 		api.GET("/proofs", contributionController.GetProofs)
 		api.GET("/proofs/:proofId/stats", contributionController.GetVoteStats)
@@ -127,9 +129,11 @@ func main() {
 		protected := api.Group("")
 		protected.Use(middleware.AuthMiddleware())
 		{
+			protected.GET("/my", goalController.GetMyGoals)
 			protected.POST("", goalController.CreateGoal)
 			protected.PATCH("/:id", goalController.UpdateGoal)
 			protected.POST("/:id/milestones", goalController.CreateMilestone)
+			protected.GET("/:goalId/milestones", goalController.GetGoalMilestones)
 			protected.POST("/milestones/:milestoneId/complete", goalController.CompleteMilestone)
 			
 			protected.POST("/contribute", contributionController.CreateContribution)
@@ -141,6 +145,15 @@ func main() {
 			protected.GET("/refunds/:id", refundController.GetRefund)
 			protected.GET("/goals/:goalId/refunds", refundController.GetGoalRefunds)
 		}
+	}
+
+	// Contributions routes
+	contributions := r.Group("/api/v1/contributions")
+	contributions.Use(middleware.AuthMiddleware())
+	{
+		contributions.GET("/my", contributionController.GetMyContributions)
+		contributions.GET("/:id", contributionController.GetContribution)
+		contributions.POST("", contributionController.CreateContribution)
 	}
 
 	// Health check

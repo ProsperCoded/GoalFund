@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { motion } from "framer-motion";
 import {
   BookOpen,
   Eye,
@@ -9,16 +9,16 @@ import {
   ArrowRight,
   ChevronRight,
   CircleDot,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Link } from "react-router-dom"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import {
   GradientText,
   FadeIn,
   StaggerContainer,
   StaggerItem,
   TiltCard,
-} from "@/components/animations"
+} from "@/components/animations";
 
 export function AboutSection() {
   const coreFeatures = [
@@ -58,36 +58,40 @@ export function AboutSection() {
       description:
         "Contributors can vote on proof of accomplishment. Build trust through transparent fund usage and community feedback.",
     },
-  ]
+  ];
 
   const howItWorks = [
     {
       step: "01",
       title: "Create a Goal",
-      description: "Set your funding target, add milestones, and describe how funds will be used.",
+      description:
+        "Set your funding target, add milestones, and describe how funds will be used.",
     },
     {
       step: "02",
       title: "Share & Collect",
-      description: "Share your goal link. Contributors can fund with just an email—no signup required.",
+      description:
+        "Share your goal link. Contributors can fund with just an email—no signup required.",
     },
     {
       step: "03",
       title: "Track Progress",
-      description: "Watch contributions come in. Every payment is verified and recorded in real-time.",
+      description:
+        "Watch contributions come in. Every payment is verified and recorded in real-time.",
     },
     {
       step: "04",
       title: "Withdraw & Report",
-      description: "Withdraw funds when ready. Submit proof of accomplishment for accountability.",
+      description:
+        "Withdraw funds when ready. Submit proof of accomplishment for accountability.",
     },
-  ]
+  ];
 
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Decorative line */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-transparent to-primary/30" />
-      
+
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-20">
@@ -105,15 +109,20 @@ export function AboutSection() {
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
               Financial Transparency{" "}
               <span className="block sm:inline">
-                for <GradientText text="Large Goals" className="text-3xl sm:text-4xl lg:text-5xl font-bold" />
+                for{" "}
+                <GradientText
+                  text="Large Goals"
+                  className="text-3xl sm:text-4xl lg:text-5xl font-bold"
+                />
               </span>
             </h2>
           </FadeIn>
 
           <FadeIn delay={0.2}>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              GoalFund is built for community projects, group contributions, and large-scale funding 
-              where trust and accountability matter. Every naira is tracked with fintech-grade precision.
+              GoalFund is built for community projects, group contributions, and
+              large-scale funding where trust and accountability matter. Every
+              naira is tracked with fintech-grade precision.
             </p>
           </FadeIn>
         </div>
@@ -121,12 +130,17 @@ export function AboutSection() {
         {/* Core Features - Bento Grid Style */}
         <div className="mb-24">
           <FadeIn delay={0.1}>
-            <h3 className="text-sm uppercase tracking-wider text-primary/70 mb-8 text-center">Core Features</h3>
+            <h3 className="text-sm uppercase tracking-wider text-primary/70 mb-8 text-center">
+              Core Features
+            </h3>
           </FadeIn>
-          
-          <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-5" staggerDelay={0.08}>
+
+          <StaggerContainer
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-5"
+            staggerDelay={0.08}
+          >
             {coreFeatures.map((feature) => {
-              const Icon = feature.icon
+              const Icon = feature.icon;
               return (
                 <StaggerItem key={feature.title}>
                   <TiltCard>
@@ -137,12 +151,16 @@ export function AboutSection() {
                       <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                         <Icon className="w-5 h-5 text-primary" />
                       </div>
-                      <h4 className="text-lg font-semibold mb-2">{feature.title}</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                      <h4 className="text-lg font-semibold mb-2">
+                        {feature.title}
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {feature.description}
+                      </p>
                     </motion.div>
                   </TiltCard>
                 </StaggerItem>
-              )
+              );
             })}
           </StaggerContainer>
         </div>
@@ -155,7 +173,8 @@ export function AboutSection() {
                 How <GradientText text="GoalFund" /> Works
               </h3>
               <p className="text-muted-foreground max-w-xl mx-auto">
-                Simple process, powerful accountability. Get your project funded in four steps.
+                Simple process, powerful accountability. Get your project funded
+                in four steps.
               </p>
             </div>
           </FadeIn>
@@ -177,11 +196,15 @@ export function AboutSection() {
                 <div className="relative text-center">
                   {/* Step indicator */}
                   <div className="relative z-10 w-16 h-16 mx-auto mb-5 rounded-full bg-card border-2 border-primary/30 flex items-center justify-center">
-                    <span className="text-sm font-bold text-primary">{item.step}</span>
+                    <span className="text-sm font-bold text-primary">
+                      {item.step}
+                    </span>
                   </div>
-                  
+
                   <h4 className="font-semibold mb-2">{item.title}</h4>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
                 </div>
               </FadeIn>
             ))}
@@ -198,10 +221,11 @@ export function AboutSection() {
                   Perfect for <GradientText text="Large-Scale" /> Projects
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  GoalFund is designed for projects where accountability and transparency matter most. 
-                  From community infrastructure to educational initiatives.
+                  GoalFund is designed for projects where accountability and
+                  transparency matter most. From community infrastructure to
+                  educational initiatives.
                 </p>
-                
+
                 <ul className="space-y-3 mb-8">
                   {[
                     "Community borehole and infrastructure projects",
@@ -227,12 +251,19 @@ export function AboutSection() {
 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link to="/register">
-                    <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+                    <Button
+                      size="lg"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+                    >
                       Start a Goal
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </Link>
-                  <Button variant="outline" size="lg" className="gap-2 border-primary/30">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="gap-2 border-primary/30"
+                  >
                     Learn More
                     <ChevronRight className="w-4 h-4" />
                   </Button>
@@ -242,36 +273,50 @@ export function AboutSection() {
               {/* Right - Stats */}
               <div className="relative">
                 <div className="grid grid-cols-2 gap-4">
-                  <motion.div 
+                  <motion.div
                     className="bg-muted/30 rounded-xl p-6 text-center"
                     whileHover={{ y: -2 }}
                   >
-                    <div className="text-3xl font-bold text-primary mb-1">100%</div>
-                    <p className="text-xs text-muted-foreground">Transaction Tracked</p>
+                    <div className="text-3xl font-bold text-primary mb-1">
+                      100%
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Transaction Tracked
+                    </p>
                   </motion.div>
-                  <motion.div 
+                  <motion.div
                     className="bg-muted/30 rounded-xl p-6 text-center"
                     whileHover={{ y: -2 }}
                   >
-                    <div className="text-3xl font-bold text-primary mb-1">Real-time</div>
-                    <p className="text-xs text-muted-foreground">Payment Verification</p>
+                    <div className="text-3xl font-bold text-primary mb-1">
+                      Real-time
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Payment Verification
+                    </p>
                   </motion.div>
-                  <motion.div 
+                  <motion.div
                     className="bg-muted/30 rounded-xl p-6 text-center"
                     whileHover={{ y: -2 }}
                   >
-                    <div className="text-3xl font-bold text-primary mb-1">Unlimited</div>
+                    <div className="text-3xl font-bold text-primary mb-1">
+                      Unlimited
+                    </div>
                     <p className="text-xs text-muted-foreground">Withdrawals</p>
                   </motion.div>
-                  <motion.div 
+                  <motion.div
                     className="bg-muted/30 rounded-xl p-6 text-center"
                     whileHover={{ y: -2 }}
                   >
-                    <div className="text-3xl font-bold text-primary mb-1">Auditable</div>
-                    <p className="text-xs text-muted-foreground">Ledger Records</p>
+                    <div className="text-3xl font-bold text-primary mb-1">
+                      Auditable
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Ledger Records
+                    </p>
                   </motion.div>
                 </div>
-                
+
                 {/* Accent */}
                 <div className="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-primary/30" />
                 <div className="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-primary/30" />
@@ -281,5 +326,5 @@ export function AboutSection() {
         </FadeIn>
       </div>
     </section>
-  )
+  );
 }

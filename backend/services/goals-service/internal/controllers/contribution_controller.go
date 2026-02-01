@@ -147,3 +147,39 @@ func (cc *ContributionController) GetProofs(c *gin.Context) {
 
 	c.JSON(http.StatusOK, proofs)
 }
+
+// GetMyContributions retrieves all contributions by the authenticated user
+func (cc *ContributionController) GetMyContributions(c *gin.Context) {
+	userIDStr := c.GetHeader("X-User-ID")
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	contributions, err := cc.contributionService.GetContributionsByUser(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"contributions": contributions, "total": len(contributions)})
+}
+
+// GetContribution retrieves a single contribution by ID
+func (cc *ContributionController) GetContribution(c *gin.Context) {
+	contributionIDStr := c.Param("id")
+	contributionID, err := uuid.Parse(contributionIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid contribution ID"})
+		return
+	}
+
+	contribution, err := cc.contributionService.GetContributionByID(contributionID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Contribution not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, contribution)
+}

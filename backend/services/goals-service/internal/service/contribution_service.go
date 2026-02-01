@@ -6,9 +6,9 @@ import (
 
 	"github.com/gofund/goals-service/internal/dto"
 	"github.com/gofund/goals-service/internal/repository"
-	"github.com/gofund/shared/models"
 	"github.com/gofund/shared/events"
 	"github.com/gofund/shared/messaging"
+	"github.com/gofund/shared/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -94,6 +94,18 @@ func (s *ContributionService) GetContributionsByGoal(goalID uuid.UUID) ([]models
 // GetContributionsByUser retrieves all contributions by a user
 func (s *ContributionService) GetContributionsByUser(userID uuid.UUID) ([]models.Contribution, error) {
 	return s.repo.Contribution.GetContributionsByUserID(userID)
+}
+
+// GetContributionByID retrieves a single contribution by ID
+func (s *ContributionService) GetContributionByID(contributionID uuid.UUID) (*models.Contribution, error) {
+	contribution, err := s.repo.Contribution.GetContributionByID(contributionID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrContributionNotFound
+		}
+		return nil, err
+	}
+	return contribution, nil
 }
 
 // WithdrawalService handles business logic for withdrawals

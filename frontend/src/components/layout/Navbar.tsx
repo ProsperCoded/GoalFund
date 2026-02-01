@@ -1,43 +1,43 @@
-import { Link, useLocation } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
-import { useState } from "react"
-import { Menu, X, LogIn, UserPlus, LogOut, User, Settings } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { GradientText } from "@/components/animations"
-import { useAuth } from "@/contexts"
+import { Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { Menu, X, LogIn, UserPlus, LogOut, User, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { GradientText } from "@/components/animations";
+import { useAuth } from "@/contexts";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
-  const location = useLocation()
-  const { user, isAuthenticated, logout } = useAuth()
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/goals", label: "Explore" },
     { href: "/how-it-works", label: "How It Works" },
-  ]
+  ];
 
-  const isActive = (path: string) => location.pathname === path
+  const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = async () => {
-    await logout()
-  }
+    await logout();
+  };
 
   const getUserInitials = () => {
-    if (!user) return "U"
+    if (!user) return "U";
     if (user.first_name && user.last_name) {
-      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
     }
-    return user.email[0].toUpperCase()
-  }
+    return user.email[0].toUpperCase();
+  };
 
   return (
     <motion.nav
@@ -64,7 +64,9 @@ export function Navbar() {
               <Link key={link.href} to={link.href}>
                 <span
                   className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(link.href) ? "text-primary" : "text-muted-foreground"
+                    isActive(link.href)
+                      ? "text-primary"
+                      : "text-muted-foreground"
                   }`}
                 >
                   {link.label}
@@ -84,7 +86,9 @@ export function Navbar() {
                         {getUserInitials()}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-sm font-medium">{user.first_name || user.email}</span>
+                    <span className="text-sm font-medium">
+                      {user.first_name || user.email}
+                    </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -108,7 +112,10 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="cursor-pointer text-destructive"
+                  >
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout
                   </DropdownMenuItem>
@@ -117,13 +124,20 @@ export function Navbar() {
             ) : (
               <>
                 <Link to="/login">
-                  <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 text-muted-foreground hover:text-foreground"
+                  >
                     <LogIn className="w-4 h-4" />
                     Login
                   </Button>
                 </Link>
                 <Link to="/register">
-                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+                  <Button
+                    size="sm"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+                  >
                     <UserPlus className="w-4 h-4" />
                     Sign Up
                   </Button>
@@ -178,13 +192,19 @@ export function Navbar() {
                       </p>
                     </div>
                     <Link to="/dashboard" onClick={() => setIsOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start gap-2">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2"
+                      >
                         <User className="w-4 h-4" />
                         Dashboard
                       </Button>
                     </Link>
                     <Link to="/settings" onClick={() => setIsOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start gap-2">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2"
+                      >
                         <Settings className="w-4 h-4" />
                         Settings
                       </Button>
@@ -193,8 +213,8 @@ export function Navbar() {
                       variant="ghost"
                       className="w-full justify-start gap-2 text-destructive hover:text-destructive"
                       onClick={() => {
-                        handleLogout()
-                        setIsOpen(false)
+                        handleLogout();
+                        setIsOpen(false);
                       }}
                     >
                       <LogOut className="w-4 h-4" />
@@ -204,7 +224,10 @@ export function Navbar() {
                 ) : (
                   <>
                     <Link to="/login" onClick={() => setIsOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start gap-2">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2"
+                      >
                         <LogIn className="w-4 h-4" />
                         Login
                       </Button>
@@ -223,5 +246,5 @@ export function Navbar() {
         )}
       </AnimatePresence>
     </motion.nav>
-  )
+  );
 }

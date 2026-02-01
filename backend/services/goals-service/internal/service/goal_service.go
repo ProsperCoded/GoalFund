@@ -111,6 +111,35 @@ func (s *GoalService) ListPublicGoals(page, pageSize int) ([]models.Goal, int64,
 	return s.repo.Goal.GetPublicGoals(pageSize, offset)
 }
 
+// ListUserGoals retrieves all goals created by a user with pagination
+func (s *GoalService) ListUserGoals(userID uuid.UUID, page, pageSize int) ([]models.Goal, int64, error) {
+	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	
+	goals, err := s.repo.Goal.GetGoalsByOwnerID(userID)
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	total := int64(len(goals))
+	
+	// Simple pagination
+	offset := (page - 1) * pageSize
+	end := offset + pageSize
+	if end > len(goals) {
+		end = len(goals)
+	}
+	if offset > len(goals) {
+		return []models.Goal{}, total, nil
+	}
+	
+	return goals[offset:end], total, nil
+}
+
 // UpdateGoal updates a goal
 func (s *GoalService) UpdateGoal(goalID, userID uuid.UUID, req dto.UpdateGoalRequest) (*models.Goal, error) {
 	goal, err := s.repo.Goal.GetGoalByIDSimple(goalID)
@@ -309,6 +338,20 @@ func (s *GoalService) CreateMilestone(goalID, userID uuid.UUID, req dto.CreateMi
 	}
 
 	return milestone, nil
+}
+
+// GetGoalMilestones retrieves all milestones for a goal
+func (s *GoalService) GetGoalMilestones(goalID uuid.UUID) ([]models.Milestone, error) {
+	// Verify goal exists
+	_, err := s.repo.Goal.GetGoalByIDSimple(goalID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrGoalNotFound
+		}
+		return nil, err
+	}
+
+	return s.repo.Milestone.GetMilestonesByGoalID(goalID)
 }
 
 // CompleteMilestone marks a milestone as completed and creates next if recurring

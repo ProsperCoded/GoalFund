@@ -73,9 +73,8 @@ export function GoalDetailPage() {
       setContributions(response.contributions || [])
     } catch (error) {
       console.error("Failed to fetch goal:", error)
-      // Use mock data
-      setGoal(getMockGoal(goalId!))
-      setContributions(getMockContributions())
+      setGoal(null)
+      setContributions([])
     } finally {
       setIsLoading(false)
     }
@@ -428,63 +427,4 @@ export function GoalDetailPage() {
   )
 }
 
-// Mock data
-function getMockGoal(id: string): Goal {
-  return {
-    id,
-    user_id: "user1",
-    title: "Community Borehole Project",
-    description:
-      "Help us provide clean water to our community. This project will serve over 500 families in the area who currently have to walk miles to get clean drinking water. Your contribution will help us dig a borehole and install a water pump that will serve the entire community for years to come.",
-    target_amount: 5000000,
-    current_amount: 3250000,
-    currency: "NGN",
-    status: "open",
-    is_public: true,
-    contributor_count: 45,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-  }
-}
 
-function getMockContributions(): Contribution[] {
-  return [
-    {
-      id: "c1",
-      goal_id: "g1",
-      user_id: "u1",
-      user_name: "John Doe",
-      amount: 100000,
-      status: "verified",
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "c2",
-      goal_id: "g1",
-      user_id: "u2",
-      user_name: "Jane Smith",
-      amount: 50000,
-      status: "verified",
-      created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "c3",
-      goal_id: "g1",
-      user_id: "u3",
-      user_name: "Anonymous",
-      amount: 250000,
-      status: "verified",
-      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "c4",
-      goal_id: "g1",
-      user_id: "u4",
-      user_name: "Chidi Okonkwo",
-      amount: 75000,
-      status: "verified",
-      created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-    },
-  ]
-}

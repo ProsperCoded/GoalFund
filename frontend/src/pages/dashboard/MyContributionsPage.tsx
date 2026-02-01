@@ -27,8 +27,7 @@ export function MyContributionsPage() {
       setContributions(response.contributions || [])
     } catch (error) {
       console.error("Failed to fetch contributions:", error)
-      // Use mock data
-      setContributions(getMockContributions())
+      setContributions([])
     } finally {
       setIsLoading(false)
     }
@@ -169,65 +168,4 @@ export function MyContributionsPage() {
   )
 }
 
-// Mock data
-function getMockContributions(): Contribution[] {
-  return [
-    {
-      id: "1",
-      goal_id: "g1",
-      goal_title: "Build a Library for Rural Kids",
-      user_id: "user1",
-      amount: 50000,
-      status: "confirmed",
-      is_anonymous: false,
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      goal_id: "g2",
-      goal_title: "Support Local Farmers Initiative",
-      user_id: "user1",
-      amount: 25000,
-      status: "confirmed",
-      is_anonymous: false,
-      message: "Keep up the great work!",
-      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "3",
-      goal_id: "g3",
-      goal_title: "Medical Fund for Mama Ada",
-      user_id: "user1",
-      amount: 100000,
-      status: "pending",
-      is_anonymous: true,
-      created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "4",
-      goal_id: "g4",
-      goal_title: "Community Well Project",
-      user_id: "user1",
-      amount: 75000,
-      status: "confirmed",
-      is_anonymous: false,
-      message: "Happy to support this cause",
-      created_at: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "5",
-      goal_id: "g5",
-      goal_title: "School Bus Fund",
-      user_id: "user1",
-      amount: 30000,
-      status: "refunded",
-      is_anonymous: false,
-      created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ]
-}
+

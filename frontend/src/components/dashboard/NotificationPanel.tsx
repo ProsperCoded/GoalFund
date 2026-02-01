@@ -30,9 +30,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
       setUnreadCount(response.unread_count)
     } catch (error) {
       console.error("Failed to fetch notifications:", error)
-      // Use mock data for demo
-      setNotifications(getMockNotifications())
-      setUnreadCount(3)
+      setNotifications([])
+      setUnreadCount(0)
     } finally {
       setIsLoading(false)
     }
@@ -194,46 +193,4 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
       )}
     </AnimatePresence>
   )
-}
-
-// Mock notifications for demo
-function getMockNotifications(): Notification[] {
-  return [
-    {
-      id: "1",
-      user_id: "user1",
-      type: "contribution_received",
-      title: "New Contribution!",
-      message: "John Doe contributed ₦50,000 to your goal 'Community Borehole Project'",
-      read: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-    },
-    {
-      id: "2",
-      user_id: "user1",
-      type: "goal_funded",
-      title: "Goal Milestone Reached! 🎉",
-      message: "Your goal 'School Fees Fund' has reached its target amount of ₦500,000",
-      read: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    },
-    {
-      id: "3",
-      user_id: "user1",
-      type: "withdrawal_completed",
-      title: "Withdrawal Successful",
-      message: "Your withdrawal of ₦200,000 has been processed and sent to your bank account",
-      read: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    },
-    {
-      id: "4",
-      user_id: "user1",
-      type: "contribution_verified",
-      title: "Contribution Verified",
-      message: "Your contribution of ₦25,000 to 'Medical Fund for Mama Ada' has been verified",
-      read: true,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    },
-  ]
 }

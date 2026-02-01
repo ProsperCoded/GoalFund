@@ -33,8 +33,7 @@ export function ExplorePage() {
       setGoals(response.goals || [])
     } catch (error) {
       console.error("Failed to fetch public goals:", error)
-      // Use mock data
-      setGoals(getMockPublicGoals())
+      setGoals([])
     } finally {
       setIsLoading(false)
     }
@@ -221,97 +220,4 @@ function PublicGoalCard({ goal, index }: { goal: Goal; index: number }) {
   )
 }
 
-// Mock public goals
-function getMockPublicGoals(): Goal[] {
-  return [
-    {
-      id: "p1",
-      user_id: "user2",
-      title: "Build a Library for Rural Kids",
-      description: "Help us build a community library to provide educational resources for children in rural areas who lack access to books and learning materials.",
-      target_amount: 8000000,
-      current_amount: 5600000,
-      currency: "NGN",
-      status: "open",
-      is_public: true,
-      contributor_count: 127,
-      deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "p2",
-      user_id: "user3",
-      title: "Support Local Farmers Initiative",
-      description: "Providing agricultural equipment and training to local farmers to improve crop yields and food security in our community.",
-      target_amount: 3500000,
-      current_amount: 2100000,
-      currency: "NGN",
-      status: "open",
-      is_public: true,
-      contributor_count: 89,
-      deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "p3",
-      user_id: "user4",
-      title: "Medical Fund for Mama Ada",
-      description: "Raising funds for Mama Ada's heart surgery. She has been a pillar of our community for over 40 years and now needs our help.",
-      target_amount: 4500000,
-      current_amount: 4200000,
-      currency: "NGN",
-      status: "open",
-      is_public: true,
-      contributor_count: 203,
-      deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "p4",
-      user_id: "user5",
-      title: "Clean Water for Village Schools",
-      description: "Installing water purification systems in 5 village schools to provide clean drinking water for over 2000 students.",
-      target_amount: 6000000,
-      current_amount: 1500000,
-      currency: "NGN",
-      status: "open",
-      is_public: true,
-      contributor_count: 42,
-      deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "p5",
-      user_id: "user6",
-      title: "Youth Skills Training Center",
-      description: "Building a skills acquisition center to train young people in vocational skills like tailoring, carpentry, and digital skills.",
-      target_amount: 10000000,
-      current_amount: 3500000,
-      currency: "NGN",
-      status: "open",
-      is_public: true,
-      contributor_count: 78,
-      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "p6",
-      user_id: "user7",
-      title: "Solar Power for Health Clinic",
-      description: "Installing solar panels at the community health clinic to ensure 24/7 power supply for medical equipment and lighting.",
-      target_amount: 2500000,
-      current_amount: 2600000,
-      currency: "NGN",
-      status: "open",
-      is_public: true,
-      contributor_count: 156,
-      deadline: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ]
-}
+

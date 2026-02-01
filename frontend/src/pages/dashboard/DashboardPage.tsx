@@ -15,9 +15,11 @@ import { StatsCard, StatsGrid, GoalCardCompact, ContributionCard } from "@/compo
 import { useAuth } from "@/contexts"
 import { goalsApi, contributionsApi, type Goal, type Contribution } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
 
 export function DashboardPage() {
   const { user } = useAuth()
+  const { toast } = useToast()
   const [goals, setGoals] = useState<Goal[]>([])
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -39,8 +41,8 @@ export function DashboardPage() {
     try {
       // Fetch goals and contributions in parallel
       const [goalsResponse, contributionsResponse] = await Promise.all([
-        goalsApi.getMyGoals().catch(() => ({ goals: getMockGoals() })),
-        contributionsApi.getMyContributions().catch(() => ({ contributions: getMockContributions() })),
+        goalsApi.getMyGoals(),
+        contributionsApi.getMyContributions(),
       ])
 
       const fetchedGoals = goalsResponse.goals || []
@@ -64,16 +66,10 @@ export function DashboardPage() {
       })
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error)
-      // Use mock data for demo
-      const mockGoals = getMockGoals()
-      const mockContributions = getMockContributions()
-      setGoals(mockGoals)
-      setContributions(mockContributions)
-      setStats({
-        totalGoals: mockGoals.length,
-        totalRaised: mockGoals.reduce((sum, g) => sum + g.current_amount, 0),
-        totalContributed: mockContributions.reduce((sum, c) => sum + c.amount, 0),
-        activeGoals: mockGoals.filter((g) => g.status === "open").length,
+      toast({
+        variant: "destructive",
+        title: "Failed to load dashboard",
+        description: "Could not load your dashboard data. Please try again.",
       })
     } finally {
       setIsLoading(false)
@@ -230,91 +226,4 @@ export function DashboardPage() {
   )
 }
 
-// Mock data for demo
-function getMockGoals(): Goal[] {
-  return [
-    {
-      id: "1",
-      user_id: "user1",
-      title: "Community Borehole Project",
-      description: "Help us provide clean water to the community",
-      target_amount: 5000000,
-      current_amount: 3250000,
-      currency: "NGN",
-      status: "open",
-      is_public: true,
-      contributor_count: 45,
-      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      user_id: "user1",
-      title: "School Fees Fund",
-      description: "Raising funds for my university tuition",
-      target_amount: 500000,
-      current_amount: 500000,
-      currency: "NGN",
-      status: "open",
-      is_public: false,
-      contributor_count: 12,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "3",
-      user_id: "user1",
-      title: "Medical Emergency Fund",
-      description: "Help with medical expenses",
-      target_amount: 2000000,
-      current_amount: 750000,
-      currency: "NGN",
-      status: "open",
-      is_public: true,
-      contributor_count: 28,
-      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ]
-}
 
-function getMockContributions(): Contribution[] {
-  return [
-    {
-      id: "1",
-      goal_id: "g1",
-      goal_title: "Build a Library for Rural Kids",
-      user_id: "user1",
-      amount: 50000,
-      status: "confirmed",
-      is_anonymous: false,
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      goal_id: "g2",
-      goal_title: "Support Local Farmers Initiative",
-      user_id: "user1",
-      amount: 25000,
-      status: "confirmed",
-      is_anonymous: false,
-      message: "Keep up the great work!",
-      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: "3",
-      goal_id: "g3",
-      goal_title: "Medical Fund for Mama Ada",
-      user_id: "user1",
-      amount: 100000,
-      status: "pending",
-      is_anonymous: true,
-      created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ]
-}

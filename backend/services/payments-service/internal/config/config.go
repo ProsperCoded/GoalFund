@@ -27,7 +27,8 @@ type Config struct {
 	MongoDBDatabase string
 
 	// RabbitMQ Configuration
-	RabbitMQURL string
+	RabbitMQURL      string
+	RabbitMQExchange string
 
 	// Redis Configuration
 	RedisURL string
@@ -73,7 +74,8 @@ func LoadConfig() (*Config, error) {
 		MongoDBDatabase: getEnv("PAYMENTS_MONGODB_DATABASE", "payments_db"),
 
 		// RabbitMQ Configuration
-		RabbitMQURL: getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
+		RabbitMQURL:      getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
+		RabbitMQExchange: getEnv("RABBITMQ_EXCHANGE", "gofund.events"),
 
 		// Redis Configuration
 		RedisURL: getEnv("REDIS_URL", "redis://localhost:6379"),

@@ -19,14 +19,14 @@ import (
 type WebhookService struct {
 	webhookRepo     *repository.WebhookRepository
 	paymentRepo     *repository.PaymentRepository
-	eventPublisher  *messaging.EventPublisher
+	eventPublisher  messaging.Publisher
 }
 
 // NewWebhookService creates a new webhook service
 func NewWebhookService(
 	webhookRepo *repository.WebhookRepository,
 	paymentRepo *repository.PaymentRepository,
-	eventPublisher *messaging.EventPublisher,
+	eventPublisher messaging.Publisher,
 ) *WebhookService {
 	return &WebhookService{
 		webhookRepo:    webhookRepo,

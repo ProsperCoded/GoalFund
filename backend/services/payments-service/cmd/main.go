@@ -68,12 +68,18 @@ func main() {
 		log.Printf("Warning: Failed to create idempotency indexes: %v", err)
 	}
 
-	// Initialize RabbitMQ event publisher
-	eventPublisher, err := messaging.NewEventPublisher(cfg.RabbitMQURL)
+	// Initialize RabbitMQ connection
+	rabbitConn, err := messaging.NewRabbitMQConnection(cfg.RabbitMQURL)
+	if err != nil {
+		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+	}
+	defer rabbitConn.Close()
+
+	// Initialize RabbitMQ publisher
+	eventPublisher, err := messaging.NewRabbitMQPublisher(rabbitConn, cfg.RabbitMQExchange)
 	if err != nil {
 		log.Fatalf("Failed to initialize event publisher: %v", err)
 	}
-	defer eventPublisher.Close()
 	log.Printf("Connected to RabbitMQ successfully")
 
 	// Initialize Paystack client

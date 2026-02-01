@@ -169,7 +169,7 @@ export function RegisterPage() {
               <span className="text-primary font-bold text-sm">G</span>
             </div>
             <span className="text-xl font-bold">
-              <GradientText text="GoFund" />
+              <GradientText text="GoalFund" />
             </span>
           </Link>
 

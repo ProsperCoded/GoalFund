@@ -51,7 +51,7 @@ export function CTASection() {
         <FadeIn delay={0.2}>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Whether it's a community project, personal milestone, or emergency fund,
-            GoFund makes it easy to raise money with complete transparency.
+            GoalFund makes it easy to raise money with complete transparency.
           </p>
         </FadeIn>
 

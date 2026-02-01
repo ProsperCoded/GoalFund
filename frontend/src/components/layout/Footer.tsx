@@ -41,7 +41,7 @@ export function Footer() {
                 <span className="text-primary font-bold text-sm">G</span>
               </div>
               <span className="text-xl font-bold">
-                <GradientText text="GoFund" />
+                <GradientText text="GoalFund" />
               </span>
             </Link>
             <p className="text-sm text-muted-foreground mb-6 max-w-sm leading-relaxed">
@@ -90,7 +90,7 @@ export function Footer() {
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
-            © 2026 GoFund. All rights reserved.
+            © 2026 GoalFund. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
             Built with accountability in mind

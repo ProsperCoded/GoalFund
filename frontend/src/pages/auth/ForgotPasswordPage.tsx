@@ -43,7 +43,7 @@ export function ForgotPasswordPage() {
             <Target className="w-6 h-6 text-white" />
           </motion.div>
           <span className="text-xl font-bold">
-            <GradientText text="GoFund" />
+            <GradientText text="GoalFund" />
           </span>
         </Link>
 

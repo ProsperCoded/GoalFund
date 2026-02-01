@@ -112,7 +112,7 @@ export function AboutSection() {
 
           <FadeIn delay={0.2}>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              GoFund is built for community projects, group contributions, and large-scale funding 
+              GoalFund is built for community projects, group contributions, and large-scale funding 
               where trust and accountability matter. Every naira is tracked with fintech-grade precision.
             </p>
           </FadeIn>
@@ -152,7 +152,7 @@ export function AboutSection() {
           <FadeIn>
             <div className="text-center mb-12">
               <h3 className="text-2xl sm:text-3xl font-bold mb-4">
-                How <GradientText text="GoFund" /> Works
+                How <GradientText text="GoalFund" /> Works
               </h3>
               <p className="text-muted-foreground max-w-xl mx-auto">
                 Simple process, powerful accountability. Get your project funded in four steps.
@@ -198,7 +198,7 @@ export function AboutSection() {
                   Perfect for <GradientText text="Large-Scale" /> Projects
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  GoFund is designed for projects where accountability and transparency matter most. 
+                  GoalFund is designed for projects where accountability and transparency matter most. 
                   From community infrastructure to educational initiatives.
                 </p>
                 

@@ -1,6 +1,6 @@
-# React + TypeScript + Vite
+# GoalFund Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + TypeScript + Vite frontend application for GoalFund - a transparent goal funding platform that enables community projects, group contributions, and large-scale funding with complete accountability.
 
 Currently, two official plugins are available:
 

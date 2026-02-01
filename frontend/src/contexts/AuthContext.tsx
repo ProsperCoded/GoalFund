@@ -98,7 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       toast({
         title: "Account Created!",
-        description: "Welcome to GoFund",
+        description: "Welcome to GoalFund",
       })
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || "Registration failed. Please try again."

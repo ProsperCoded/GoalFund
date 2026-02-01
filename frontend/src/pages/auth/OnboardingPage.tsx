@@ -65,7 +65,7 @@ export function OnboardingPage() {
 
                 <div>
                   <h1 className="text-2xl font-bold mb-2">
-                    Welcome to <GradientText text="GoFund!" />
+                    Welcome to <GradientText text="GoalFund!" />
                   </h1>
                   <p className="text-muted-foreground">
                     Let's set up your account to unlock all features

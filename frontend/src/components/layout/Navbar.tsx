@@ -50,9 +50,11 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <span className="text-primary font-bold text-sm">G</span>
-            </div>
+            <img
+              src="/assets/logo.png"
+              alt="GoalFund"
+              className="w-8 h-8 object-contain"
+            />
             <span className="text-xl font-bold">
               <GradientText text="GoalFund" />
             </span>

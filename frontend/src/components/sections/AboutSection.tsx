@@ -90,7 +90,7 @@ export function AboutSection() {
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Decorative line */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-transparent to-primary/30" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-linear-to-b from-transparent to-primary/30" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
@@ -183,7 +183,7 @@ export function AboutSection() {
             {/* Connection line - desktop only */}
             <div className="absolute top-8 left-[12.5%] right-[12.5%] h-px bg-border hidden md:block">
               <motion.div
-                className="h-full bg-gradient-to-r from-primary/50 via-primary to-primary/50"
+                className="h-full bg-linear-to-r from-primary/50 via-primary to-primary/50"
                 initial={{ scaleX: 0 }}
                 whileInView={{ scaleX: 1 }}
                 viewport={{ once: true }}
@@ -272,55 +272,19 @@ export function AboutSection() {
 
               {/* Right - Stats */}
               <div className="relative">
-                <div className="grid grid-cols-2 gap-4">
-                  <motion.div
-                    className="bg-muted/30 rounded-xl p-6 text-center"
-                    whileHover={{ y: -2 }}
-                  >
-                    <div className="text-3xl font-bold text-primary mb-1">
-                      100%
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Transaction Tracked
-                    </p>
-                  </motion.div>
-                  <motion.div
-                    className="bg-muted/30 rounded-xl p-6 text-center"
-                    whileHover={{ y: -2 }}
-                  >
-                    <div className="text-3xl font-bold text-primary mb-1">
-                      Real-time
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Payment Verification
-                    </p>
-                  </motion.div>
-                  <motion.div
-                    className="bg-muted/30 rounded-xl p-6 text-center"
-                    whileHover={{ y: -2 }}
-                  >
-                    <div className="text-3xl font-bold text-primary mb-1">
-                      Unlimited
-                    </div>
-                    <p className="text-xs text-muted-foreground">Withdrawals</p>
-                  </motion.div>
-                  <motion.div
-                    className="bg-muted/30 rounded-xl p-6 text-center"
-                    whileHover={{ y: -2 }}
-                  >
-                    <div className="text-3xl font-bold text-primary mb-1">
-                      Auditable
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Ledger Records
-                    </p>
-                  </motion.div>
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full opacity-30" />
+                  <img
+                    src="/assets/secure-book.png"
+                    alt="Secure Ledger"
+                    className="relative w-full max-w-[400px] object-contain drop-shadow-xl hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
-
-                {/* Accent */}
-                <div className="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-primary/30" />
-                <div className="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-primary/30" />
               </div>
+
+              {/* Accent */}
+              <div className="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-primary/30" />
+              <div className="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-primary/30" />
             </div>
           </div>
         </FadeIn>

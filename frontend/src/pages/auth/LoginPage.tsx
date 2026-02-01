@@ -1,6 +1,6 @@
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   Mail,
   Lock,
@@ -11,49 +11,45 @@ import {
   Loader2,
   BookOpen,
   ShieldCheck,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Separator } from "@/components/ui/separator"
-import {
-  GradientText,
-  FadeIn,
-  BlurText,
-} from "@/components/animations"
-import { useAuth } from "@/contexts"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { GradientText, FadeIn, BlurText } from "@/components/animations";
+import { useAuth } from "@/contexts";
 
 export function LoginPage() {
-  const navigate = useNavigate()
-  const { login } = useAuth()
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     rememberMe: false,
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    
+    e.preventDefault();
+    setIsLoading(true);
+
     try {
       await login({
         email: formData.email,
         password: formData.password,
-      })
-      
+      });
+
       // Redirect to home page after successful login
-      navigate("/")
+      navigate("/");
     } catch (error) {
       // Error is handled in AuthContext with toast
-      console.error("Login error:", error)
+      console.error("Login error:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -87,7 +83,11 @@ export function LoginPage() {
 
           {/* Social Login */}
           <div className="space-y-3 mb-6">
-            <Button variant="outline" className="w-full gap-2 border-border/50 hover:bg-muted/50" type="button">
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-border/50 hover:bg-muted/50"
+              type="button"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -108,7 +108,11 @@ export function LoginPage() {
               </svg>
               Continue with Google
             </Button>
-            <Button variant="outline" className="w-full gap-2 border-border/50 hover:bg-muted/50" type="button">
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-border/50 hover:bg-muted/50"
+              type="button"
+            >
               <Github className="w-5 h-5" />
               Continue with GitHub
             </Button>
@@ -124,7 +128,9 @@ export function LoginPage() {
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm">Email</Label>
+              <Label htmlFor="email" className="text-sm">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -141,7 +147,9 @@ export function LoginPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm">Password</Label>
+                <Label htmlFor="password" className="text-sm">
+                  Password
+                </Label>
                 <Link
                   to="/forgot-password"
                   className="text-xs text-primary hover:underline"
@@ -184,7 +192,10 @@ export function LoginPage() {
                   setFormData({ ...formData, rememberMe: checked as boolean })
                 }
               />
-              <Label htmlFor="remember" className="text-sm cursor-pointer text-muted-foreground">
+              <Label
+                htmlFor="remember"
+                className="text-sm cursor-pointer text-muted-foreground"
+              >
                 Remember me for 30 days
               </Label>
             </div>
@@ -212,7 +223,10 @@ export function LoginPage() {
           {/* Sign Up Link */}
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link to="/register" className="text-primary hover:underline font-medium">
+            <Link
+              to="/register"
+              className="text-primary hover:underline font-medium"
+            >
               Create one
             </Link>
           </p>
@@ -223,17 +237,20 @@ export function LoginPage() {
       <div className="hidden lg:flex flex-1 relative overflow-hidden bg-card border-l border-border/50">
         {/* Subtle grid */}
         <div className="absolute inset-0 opacity-[0.03]">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `linear-gradient(rgba(212, 168, 83, 0.5) 1px, transparent 1px),
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `linear-gradient(rgba(212, 168, 83, 0.5) 1px, transparent 1px),
                              linear-gradient(90deg, rgba(212, 168, 83, 0.5) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }} />
+              backgroundSize: "40px 40px",
+            }}
+          />
         </div>
-        
+
         {/* Corner accents */}
         <div className="absolute top-8 left-8 w-16 h-16 border-t border-l border-primary/20" />
         <div className="absolute bottom-8 right-8 w-16 h-16 border-b border-r border-primary/20" />
-        
+
         <div className="relative z-10 flex items-center justify-center w-full p-12">
           <FadeIn direction="left">
             <div className="max-w-md">
@@ -242,7 +259,7 @@ export function LoginPage() {
                   Built for <GradientText text="Accountability" />
                 </h2>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  Every contribution tracked. Every transaction verified. 
+                  Every contribution tracked. Every transaction verified.
                   Complete transparency for community funding.
                 </p>
               </div>
@@ -257,11 +274,15 @@ export function LoginPage() {
                 >
                   <BookOpen className="w-5 h-5 text-primary mt-0.5" />
                   <div>
-                    <p className="font-medium text-sm">Ledger-backed Tracking</p>
-                    <p className="text-xs text-muted-foreground">Immutable records for every transaction</p>
+                    <p className="font-medium text-sm">
+                      Ledger-backed Tracking
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Immutable records for every transaction
+                    </p>
                   </div>
                 </motion.div>
-                
+
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -271,7 +292,9 @@ export function LoginPage() {
                   <ShieldCheck className="w-5 h-5 text-primary mt-0.5" />
                   <div>
                     <p className="font-medium text-sm">Verified Payments</p>
-                    <p className="text-xs text-muted-foreground">Paystack integration with webhook verification</p>
+                    <p className="text-xs text-muted-foreground">
+                      Paystack integration with webhook verification
+                    </p>
                   </div>
                 </motion.div>
               </div>
@@ -284,7 +307,7 @@ export function LoginPage() {
                 className="relative pl-4 border-l-2 border-primary/30"
               >
                 <p className="text-sm text-muted-foreground italic mb-2">
-                  "Perfect for our community borehole project. Everyone could 
+                  "Perfect for our community borehole project. Everyone could
                   see exactly where their money went."
                 </p>
                 <p className="text-xs text-primary">— Community Project Lead</p>
@@ -292,7 +315,20 @@ export function LoginPage() {
             </div>
           </FadeIn>
         </div>
+        {/* Decorative Coins */}
+        <motion.div
+          className="absolute bottom-0 right-0 w-64 h-64 lg:w-80 lg:h-80 opacity-20 lg:opacity-60 pointer-events-none"
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 0.6 }}
+          transition={{ delay: 0.8, duration: 1 }}
+        >
+          <img
+            src="/assets/coins.png"
+            alt="Coins"
+            className="w-full h-full object-contain"
+          />
+        </motion.div>
       </div>
     </div>
-  )
+  );
 }

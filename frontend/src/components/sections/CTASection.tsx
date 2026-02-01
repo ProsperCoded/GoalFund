@@ -1,15 +1,15 @@
-import { motion } from "framer-motion"
-import { Link } from "react-router-dom"
-import { ArrowRight, Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { SplitText, GradientText, FadeIn } from "@/components/animations"
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SplitText, GradientText, FadeIn } from "@/components/animations";
 
 export function CTASection() {
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
-      
+      <div className="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-accent/10" />
+
       {/* Animated Orbs */}
       <motion.div
         className="absolute top-10 left-10 w-64 h-64 bg-primary/20 rounded-full blur-3xl"
@@ -28,6 +28,22 @@ export function CTASection() {
         transition={{ duration: 10, repeat: Infinity, delay: 5 }}
       />
 
+      {/* Target Image Decoration */}
+      <motion.div
+        className="absolute -bottom-10 -right-10 md:bottom-10 md:right-20 w-48 h-48 md:w-64 md:h-64 opacity-10 md:opacity-20 pointer-events-none"
+        animate={{
+          rotate: [0, 10, 0],
+          scale: [1, 1.1, 1],
+        }}
+        transition={{ duration: 20, repeat: Infinity }}
+      >
+        <img
+          src="/assets/target.png"
+          alt="Target"
+          className="w-full h-full object-contain"
+        />
+      </motion.div>
+
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <FadeIn>
           <motion.div
@@ -44,21 +60,29 @@ export function CTASection() {
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
           <SplitText text="Ready to Fund" className="mb-2" />
           <span className="block">
-            <GradientText text="Your Dreams?" className="text-3xl sm:text-4xl lg:text-5xl font-bold" />
+            <GradientText
+              text="Your Dreams?"
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold"
+            />
           </span>
         </h2>
 
         <FadeIn delay={0.2}>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Whether it's a community project, personal milestone, or emergency fund,
-            GoalFund makes it easy to raise money with complete transparency.
+            Whether it's a community project, personal milestone, or emergency
+            fund, GoalFund makes it easy to raise money with complete
+            transparency.
           </p>
         </FadeIn>
 
         <FadeIn delay={0.3}>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/register">
-              <Button size="xl" variant="gradient" className="gap-2 w-full sm:w-auto">
+              <Button
+                size="xl"
+                variant="gradient"
+                className="gap-2 w-full sm:w-auto"
+              >
                 Create Your Goal Free
                 <ArrowRight className="w-5 h-5" />
               </Button>
@@ -78,5 +102,5 @@ export function CTASection() {
         </FadeIn>
       </div>
     </section>
-  )
+  );
 }

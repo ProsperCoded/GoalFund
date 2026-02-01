@@ -1,6 +1,6 @@
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   Mail,
   Lock,
@@ -14,44 +14,44 @@ import {
   Target,
   Users,
   Banknote,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Separator } from "@/components/ui/separator"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import {
   GradientText,
   FadeIn,
   BlurText,
   StaggerContainer,
   StaggerItem,
-} from "@/components/animations"
-import { useAuth } from "@/contexts"
+} from "@/components/animations";
+import { useAuth } from "@/contexts";
 
 export function RegisterPage() {
-  const navigate = useNavigate()
-  const { register } = useAuth()
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate();
+  const { register } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     acceptTerms: false,
-  })
+  });
 
   const passwordRequirements = [
     { label: "At least 8 characters", met: formData.password.length >= 8 },
     { label: "One uppercase letter", met: /[A-Z]/.test(formData.password) },
     { label: "One lowercase letter", met: /[a-z]/.test(formData.password) },
     { label: "One number", met: /\d/.test(formData.password) },
-  ]
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
       await register({
@@ -59,35 +59,35 @@ export function RegisterPage() {
         password: formData.password,
         first_name: formData.firstName,
         last_name: formData.lastName,
-      })
-      
+      });
+
       // Redirect to onboarding page after successful registration
-      navigate("/onboarding")
+      navigate("/onboarding");
     } catch (error) {
       // Error is handled in AuthContext with toast
-      console.error("Registration error:", error)
+      console.error("Registration error:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const features = [
-    { 
-      icon: Target, 
+    {
+      icon: Target,
       title: "Create Goals",
-      description: "Set up funding goals with milestones and track progress" 
+      description: "Set up funding goals with milestones and track progress",
     },
-    { 
-      icon: Users, 
+    {
+      icon: Users,
       title: "Collect Contributions",
-      description: "Contributors can fund with just an email—no signup needed" 
+      description: "Contributors can fund with just an email—no signup needed",
     },
-    { 
-      icon: Banknote, 
+    {
+      icon: Banknote,
       title: "Withdraw Anytime",
-      description: "Access funds when you need them with full audit trail" 
+      description: "Access funds when you need them with full audit trail",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen flex">
@@ -95,17 +95,20 @@ export function RegisterPage() {
       <div className="hidden lg:flex flex-1 relative overflow-hidden bg-card border-r border-border/50">
         {/* Subtle grid */}
         <div className="absolute inset-0 opacity-[0.03]">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `linear-gradient(rgba(212, 168, 83, 0.5) 1px, transparent 1px),
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `linear-gradient(rgba(212, 168, 83, 0.5) 1px, transparent 1px),
                              linear-gradient(90deg, rgba(212, 168, 83, 0.5) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }} />
+              backgroundSize: "40px 40px",
+            }}
+          />
         </div>
-        
+
         {/* Corner accents */}
         <div className="absolute top-8 right-8 w-16 h-16 border-t border-r border-primary/20" />
         <div className="absolute bottom-8 left-8 w-16 h-16 border-b border-l border-primary/20" />
-        
+
         <div className="relative z-10 flex items-center justify-center w-full p-12">
           <FadeIn direction="right">
             <div className="max-w-md">
@@ -114,28 +117,32 @@ export function RegisterPage() {
                   Start Funding <GradientText text="Big Goals" />
                 </h2>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  Create goals for community projects, group contributions, and large-scale 
-                  funding with complete accountability.
+                  Create goals for community projects, group contributions, and
+                  large-scale funding with complete accountability.
                 </p>
               </div>
 
               {/* Features */}
               <StaggerContainer className="space-y-4" staggerDelay={0.1}>
                 {features.map((feature) => {
-                  const Icon = feature.icon
+                  const Icon = feature.icon;
                   return (
                     <StaggerItem key={feature.title}>
                       <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg border border-border/50">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                           <Icon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-medium text-sm mb-1">{feature.title}</h3>
-                          <p className="text-xs text-muted-foreground">{feature.description}</p>
+                          <h3 className="font-medium text-sm mb-1">
+                            {feature.title}
+                          </h3>
+                          <p className="text-xs text-muted-foreground">
+                            {feature.description}
+                          </p>
                         </div>
                       </div>
                     </StaggerItem>
-                  )
+                  );
                 })}
               </StaggerContainer>
 
@@ -147,12 +154,26 @@ export function RegisterPage() {
                 className="mt-10 pt-6 border-t border-border/50"
               >
                 <p className="text-xs text-muted-foreground text-center">
-                  Ledger-backed accounting • Verified payments • Complete transparency
+                  Ledger-backed accounting • Verified payments • Complete
+                  transparency
                 </p>
               </motion.div>
             </div>
           </FadeIn>
         </div>
+        {/* Decorative Coins */}
+        <motion.div
+          className="absolute bottom-0 left-0 w-64 h-64 lg:w-80 lg:h-80 opacity-20 lg:opacity-60 pointer-events-none"
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 0.6 }}
+          transition={{ delay: 0.8, duration: 1 }}
+        >
+          <img
+            src="/assets/coins.png"
+            alt="Coins"
+            className="w-full h-full object-contain transform -scale-x-100"
+          />
+        </motion.div>
       </div>
 
       {/* Right Side - Form */}
@@ -185,7 +206,11 @@ export function RegisterPage() {
 
           {/* Social Login */}
           <div className="space-y-3 mb-6">
-            <Button variant="outline" className="w-full gap-2 border-border/50 hover:bg-muted/50" type="button">
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-border/50 hover:bg-muted/50"
+              type="button"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -206,7 +231,11 @@ export function RegisterPage() {
               </svg>
               Continue with Google
             </Button>
-            <Button variant="outline" className="w-full gap-2 border-border/50 hover:bg-muted/50" type="button">
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-border/50 hover:bg-muted/50"
+              type="button"
+            >
               <Github className="w-5 h-5" />
               Continue with GitHub
             </Button>
@@ -223,7 +252,9 @@ export function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-sm">First Name</Label>
+                <Label htmlFor="firstName" className="text-sm">
+                  First Name
+                </Label>
                 <Input
                   id="firstName"
                   type="text"
@@ -237,9 +268,11 @@ export function RegisterPage() {
                   className="bg-muted/30 border-border/50 focus:border-primary/50"
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-sm">Last Name</Label>
+                <Label htmlFor="lastName" className="text-sm">
+                  Last Name
+                </Label>
                 <Input
                   id="lastName"
                   type="text"
@@ -255,7 +288,9 @@ export function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm">Email</Label>
+              <Label htmlFor="email" className="text-sm">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -271,7 +306,9 @@ export function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm">Password</Label>
+              <Label htmlFor="password" className="text-sm">
+                Password
+              </Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -333,7 +370,10 @@ export function RegisterPage() {
                 }
                 className="mt-0.5"
               />
-              <Label htmlFor="terms" className="text-sm cursor-pointer leading-tight text-muted-foreground">
+              <Label
+                htmlFor="terms"
+                className="text-sm cursor-pointer leading-tight text-muted-foreground"
+              >
                 I agree to the{" "}
                 <Link to="/terms" className="text-primary hover:underline">
                   Terms of Service
@@ -368,12 +408,15 @@ export function RegisterPage() {
           {/* Sign In Link */}
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/login" className="text-primary hover:underline font-medium">
+            <Link
+              to="/login"
+              className="text-primary hover:underline font-medium"
+            >
               Sign in
             </Link>
           </p>
         </motion.div>
       </div>
     </div>
-  )
+  );
 }

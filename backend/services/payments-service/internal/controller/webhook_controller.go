@@ -2,12 +2,12 @@ package controller
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofund/payments-service/internal/dto"
 	"github.com/gofund/payments-service/internal/service"
-	"github.com/gofund/shared/logger"
 )
 
 // WebhookController handles webhook-related HTTP requests
@@ -27,7 +27,7 @@ func (wc *WebhookController) HandleWebhook(c *gin.Context) {
 	// Get webhook body from context (set by middleware)
 	bodyInterface, exists := c.Get("webhook_body")
 	if !exists {
-		logger.Error("Webhook body not found in context", nil)
+		log.Printf("[INFO] Webhook body not found in context", nil)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "Invalid webhook request",
@@ -37,7 +37,7 @@ func (wc *WebhookController) HandleWebhook(c *gin.Context) {
 
 	body, ok := bodyInterface.([]byte)
 	if !ok {
-		logger.Error("Invalid webhook body type", nil)
+		log.Printf("[INFO] Invalid webhook body type", nil)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "Invalid webhook request",
@@ -51,7 +51,7 @@ func (wc *WebhookController) HandleWebhook(c *gin.Context) {
 	// Parse webhook payload
 	var payload dto.WebhookPayload
 	if err := json.Unmarshal(body, &payload); err != nil {
-		logger.Error("Failed to parse webhook payload", map[string]interface{}{
+		log.Printf("[INFO] Failed to parse webhook payload", map[string]interface{}{
 			"error": err.Error(),
 		})
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -61,14 +61,14 @@ func (wc *WebhookController) HandleWebhook(c *gin.Context) {
 		return
 	}
 
-	logger.Info("Received webhook", map[string]interface{}{
+	log.Printf("[INFO] Received webhook", map[string]interface{}{
 		"event": payload.Event,
 	})
 
 	// Process webhook asynchronously (return 200 immediately)
 	go func() {
 		if err := wc.webhookService.ProcessWebhook(c.Request.Context(), &payload, signature); err != nil {
-			logger.Error("Failed to process webhook", map[string]interface{}{
+			log.Printf("[INFO] Failed to process webhook", map[string]interface{}{
 				"error": err.Error(),
 				"event": payload.Event,
 			})

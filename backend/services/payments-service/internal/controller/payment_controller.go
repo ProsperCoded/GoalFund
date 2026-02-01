@@ -1,12 +1,12 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofund/payments-service/internal/dto"
 	"github.com/gofund/payments-service/internal/service"
-	"github.com/gofund/shared/logger"
 )
 
 // PaymentController handles payment-related HTTP requests
@@ -26,7 +26,7 @@ func (pc *PaymentController) InitializePayment(c *gin.Context) {
 	var req dto.InitializePaymentRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.Error("Invalid payment initialization request", map[string]interface{}{
+		log.Printf("[INFO] Invalid payment initialization request", map[string]interface{}{
 			"error": err.Error(),
 		})
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -40,7 +40,7 @@ func (pc *PaymentController) InitializePayment(c *gin.Context) {
 	// Initialize payment
 	resp, err := pc.paymentService.InitializePayment(c.Request.Context(), &req)
 	if err != nil {
-		logger.Error("Failed to initialize payment", map[string]interface{}{
+		log.Printf("[INFO] Failed to initialize payment", map[string]interface{}{
 			"error":   err.Error(),
 			"user_id": req.UserID.String(),
 			"goal_id": req.GoalID.String(),
@@ -74,7 +74,7 @@ func (pc *PaymentController) VerifyPayment(c *gin.Context) {
 	// Verify payment
 	resp, err := pc.paymentService.VerifyPayment(c.Request.Context(), reference)
 	if err != nil {
-		logger.Error("Failed to verify payment", map[string]interface{}{
+		log.Printf("[INFO] Failed to verify payment", map[string]interface{}{
 			"error":     err.Error(),
 			"reference": reference,
 		})
@@ -106,7 +106,7 @@ func (pc *PaymentController) GetPaymentStatus(c *gin.Context) {
 	// Get payment status
 	resp, err := pc.paymentService.GetPaymentStatus(c.Request.Context(), paymentID)
 	if err != nil {
-		logger.Error("Failed to get payment status", map[string]interface{}{
+		log.Printf("[INFO] Failed to get payment status", map[string]interface{}{
 			"error":      err.Error(),
 			"payment_id": paymentID,
 		})
@@ -131,7 +131,7 @@ func (pc *PaymentController) ListBanks(c *gin.Context) {
 	// Get bank list
 	banks, err := pc.paymentService.ListBanks(c.Request.Context(), country)
 	if err != nil {
-		logger.Error("Failed to list banks", map[string]interface{}{
+		log.Printf("[INFO] Failed to list banks", map[string]interface{}{
 			"error":   err.Error(),
 			"country": country,
 		})
@@ -170,7 +170,7 @@ func (pc *PaymentController) ResolveAccount(c *gin.Context) {
 	// Resolve account
 	resp, err := pc.paymentService.ResolveAccount(c.Request.Context(), req)
 	if err != nil {
-		logger.Error("Failed to resolve account", map[string]interface{}{
+		log.Printf("[INFO] Failed to resolve account", map[string]interface{}{
 			"error":          err.Error(),
 			"account_number": accountNumber,
 			"bank_code":      bankCode,

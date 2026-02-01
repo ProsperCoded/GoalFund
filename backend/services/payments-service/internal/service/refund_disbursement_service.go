@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/gofund/payments-service/internal/dto"
-	"github.com/gofund/shared/logger"
 	"github.com/gofund/shared/metrics"
 )
 
@@ -91,7 +91,7 @@ func (rds *RefundDisbursementService) InitiateDisbursement(req *dto.Disbursement
 	// Generate unique reference for this disbursement
 	reference := fmt.Sprintf("REFUND-%s", req.DisbursementID.String())
 
-	logger.Info("Initiating refund disbursement", map[string]interface{}{
+	log.Printf("[INFO] Initiating refund disbursement", map[string]interface{}{
 		"disbursement_id": req.DisbursementID.String(),
 		"user_id":         req.UserID.String(),
 		"amount":          req.Amount,
@@ -175,7 +175,7 @@ func (rds *RefundDisbursementService) createTransferRecipient(name, accountNumbe
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		metrics.IncrementCounter("paystack.api.create_recipient.failed")
-		logger.Error("Failed to create transfer recipient", map[string]interface{}{
+		log.Printf("[INFO] Failed to create transfer recipient", map[string]interface{}{
 			"status_code": resp.StatusCode,
 			"response":    string(respBody),
 		})
@@ -193,7 +193,7 @@ func (rds *RefundDisbursementService) createTransferRecipient(name, accountNumbe
 	}
 
 	metrics.IncrementCounter("paystack.api.create_recipient.success")
-	logger.Info("Transfer recipient created successfully", map[string]interface{}{
+	log.Printf("[INFO] Transfer recipient created successfully", map[string]interface{}{
 		"recipient_code": paystackResp.Data.RecipientCode,
 		"account_number": accountNumber,
 	})
@@ -246,7 +246,7 @@ func (rds *RefundDisbursementService) initiateTransfer(recipientCode string, amo
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		metrics.IncrementCounter("paystack.api.initiate_transfer.failed")
-		logger.Error("Failed to initiate transfer", map[string]interface{}{
+		log.Printf("[INFO] Failed to initiate transfer", map[string]interface{}{
 			"status_code": resp.StatusCode,
 			"response":    string(respBody),
 		})
@@ -264,7 +264,7 @@ func (rds *RefundDisbursementService) initiateTransfer(recipientCode string, amo
 	}
 
 	metrics.IncrementCounter("paystack.api.initiate_transfer.success")
-	logger.Info("Transfer initiated successfully", map[string]interface{}{
+	log.Printf("[INFO] Transfer initiated successfully", map[string]interface{}{
 		"transfer_code": paystackResp.Data.TransferCode,
 		"reference":     reference,
 		"amount":        amount,
@@ -308,7 +308,7 @@ func (rds *RefundDisbursementService) VerifyDisbursement(transferCode string) (s
 		return "", fmt.Errorf("failed to verify transfer: %s", paystackResp.Message)
 	}
 
-	logger.Info("Transfer verified", map[string]interface{}{
+	log.Printf("[INFO] Transfer verified", map[string]interface{}{
 		"transfer_code": transferCode,
 		"status":        paystackResp.Data.Status,
 	})

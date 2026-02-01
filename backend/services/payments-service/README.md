@@ -371,7 +371,7 @@ The service tracks the following metrics:
 All operations are logged with structured logging:
 
 ```go
-logger.Info("Payment verified successfully", map[string]interface{}{
+log.Printf("[INFO] Payment verified successfully", map[string]interface{}{
     "payment_id": paymentID,
     "reference":  reference,
     "amount":     amount,

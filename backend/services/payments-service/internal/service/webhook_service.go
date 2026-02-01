@@ -3,12 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gofund/payments-service/internal/dto"
 	"github.com/gofund/payments-service/internal/repository"
 	"github.com/gofund/shared/events"
-	"github.com/gofund/shared/logger"
 	"github.com/gofund/shared/messaging"
 	"github.com/gofund/shared/metrics"
 	"github.com/gofund/shared/models"
@@ -40,14 +40,14 @@ func (ws *WebhookService) ProcessWebhook(ctx context.Context, payload *dto.Webho
 	// Generate event ID from Paystack data
 	eventID := ws.generateEventID(payload)
 
-	logger.Info("Processing webhook event", map[string]interface{}{
+	log.Printf("[INFO] Processing webhook event", map[string]interface{}{
 		"event_id":   eventID,
 		"event_type": payload.Event,
 	})
 
 	// Step 1: Check idempotency (has this event been processed?)
 	if ws.webhookRepo.IsEventProcessed(ctx, eventID) {
-		logger.Info("Webhook event already processed, skipping", map[string]interface{}{
+		log.Printf("[INFO] Webhook event already processed, skipping", map[string]interface{}{
 			"event_id":   eventID,
 			"event_type": payload.Event,
 		})
@@ -65,7 +65,7 @@ func (ws *WebhookService) ProcessWebhook(ctx context.Context, payload *dto.Webho
 	}
 
 	if err := ws.webhookRepo.SaveWebhookEvent(ctx, webhookEvent); err != nil {
-		logger.Error("Failed to save webhook event", map[string]interface{}{
+		log.Printf("[INFO] Failed to save webhook event", map[string]interface{}{
 			"error":      err.Error(),
 			"event_id":   eventID,
 			"event_type": payload.Event,
@@ -85,7 +85,7 @@ func (ws *WebhookService) ProcessWebhook(ctx context.Context, payload *dto.Webho
 	case "transfer.failed":
 		processErr = ws.processTransferFailed(ctx, payload.Data)
 	default:
-		logger.Info("Unhandled webhook event type", map[string]interface{}{
+		log.Printf("[INFO] Unhandled webhook event type", map[string]interface{}{
 			"event_type": payload.Event,
 		})
 		// Mark as processed even if we don't handle it
@@ -94,7 +94,7 @@ func (ws *WebhookService) ProcessWebhook(ctx context.Context, payload *dto.Webho
 	}
 
 	if processErr != nil {
-		logger.Error("Failed to process webhook event", map[string]interface{}{
+		log.Printf("[INFO] Failed to process webhook event", map[string]interface{}{
 			"error":      processErr.Error(),
 			"event_id":   eventID,
 			"event_type": payload.Event,
@@ -104,7 +104,7 @@ func (ws *WebhookService) ProcessWebhook(ctx context.Context, payload *dto.Webho
 
 	// Step 4: Mark webhook as processed
 	if err := ws.webhookRepo.MarkWebhookProcessed(ctx, eventID); err != nil {
-		logger.Error("Failed to mark webhook as processed", map[string]interface{}{
+		log.Printf("[INFO] Failed to mark webhook as processed", map[string]interface{}{
 			"error":    err.Error(),
 			"event_id": eventID,
 		})
@@ -112,7 +112,7 @@ func (ws *WebhookService) ProcessWebhook(ctx context.Context, payload *dto.Webho
 	}
 
 	metrics.IncrementCounter("webhook.processed.count")
-	logger.Info("Webhook event processed successfully", map[string]interface{}{
+	log.Printf("[INFO] Webhook event processed successfully", map[string]interface{}{
 		"event_id":   eventID,
 		"event_type": payload.Event,
 	})
@@ -128,14 +128,14 @@ func (ws *WebhookService) processChargeSuccess(ctx context.Context, data map[str
 		return fmt.Errorf("missing or invalid reference in webhook data")
 	}
 
-	logger.Info("Processing charge.success webhook", map[string]interface{}{
+	log.Printf("[INFO] Processing charge.success webhook", map[string]interface{}{
 		"reference": reference,
 	})
 
 	// Get payment by reference
 	payment, err := ws.paymentRepo.GetPaymentByReference(ctx, reference)
 	if err != nil {
-		logger.Error("Payment not found for webhook", map[string]interface{}{
+		log.Printf("[INFO] Payment not found for webhook", map[string]interface{}{
 			"error":     err.Error(),
 			"reference": reference,
 		})
@@ -144,7 +144,7 @@ func (ws *WebhookService) processChargeSuccess(ctx context.Context, data map[str
 
 	// Check if already verified (idempotency - might have been verified via API)
 	if payment.Status == models.PaymentStatusVerified {
-		logger.Info("Payment already verified, webhook is backup confirmation", map[string]interface{}{
+		log.Printf("[INFO] Payment already verified, webhook is backup confirmation", map[string]interface{}{
 			"payment_id": payment.PaymentID,
 			"reference":  reference,
 		})
@@ -156,7 +156,7 @@ func (ws *WebhookService) processChargeSuccess(ctx context.Context, data map[str
 	payment.PaystackData = data
 
 	if err := ws.paymentRepo.UpdatePayment(ctx, payment); err != nil {
-		logger.Error("Failed to update payment status", map[string]interface{}{
+		log.Printf("[INFO] Failed to update payment status", map[string]interface{}{
 			"error":      err.Error(),
 			"payment_id": payment.PaymentID,
 		})
@@ -165,7 +165,7 @@ func (ws *WebhookService) processChargeSuccess(ctx context.Context, data map[str
 
 	// Emit PaymentVerified event
 	if err := ws.emitPaymentVerifiedEvent(payment); err != nil {
-		logger.Error("Failed to emit PaymentVerified event", map[string]interface{}{
+		log.Printf("[INFO] Failed to emit PaymentVerified event", map[string]interface{}{
 			"error":      err.Error(),
 			"payment_id": payment.PaymentID,
 		})
@@ -173,7 +173,7 @@ func (ws *WebhookService) processChargeSuccess(ctx context.Context, data map[str
 	}
 
 	metrics.IncrementCounter("webhook.payment.verified.count")
-	logger.Info("Payment verified via webhook", map[string]interface{}{
+	log.Printf("[INFO] Payment verified via webhook", map[string]interface{}{
 		"payment_id": payment.PaymentID,
 		"reference":  reference,
 		"amount":     payment.Amount,
@@ -189,7 +189,7 @@ func (ws *WebhookService) processChargeFailed(ctx context.Context, data map[stri
 		return fmt.Errorf("missing or invalid reference in webhook data")
 	}
 
-	logger.Info("Processing charge.failed webhook", map[string]interface{}{
+	log.Printf("[INFO] Processing charge.failed webhook", map[string]interface{}{
 		"reference": reference,
 	})
 
@@ -208,7 +208,7 @@ func (ws *WebhookService) processChargeFailed(ctx context.Context, data map[stri
 	}
 
 	metrics.IncrementCounter("webhook.payment.failed.count")
-	logger.Info("Payment marked as failed via webhook", map[string]interface{}{
+	log.Printf("[INFO] Payment marked as failed via webhook", map[string]interface{}{
 		"payment_id": payment.PaymentID,
 		"reference":  reference,
 	})
@@ -223,7 +223,7 @@ func (ws *WebhookService) processTransferSuccess(ctx context.Context, data map[s
 		return fmt.Errorf("missing or invalid reference in webhook data")
 	}
 
-	logger.Info("Processing transfer.success webhook", map[string]interface{}{
+	log.Printf("[INFO] Processing transfer.success webhook", map[string]interface{}{
 		"reference": reference,
 	})
 
@@ -241,7 +241,7 @@ func (ws *WebhookService) processTransferFailed(ctx context.Context, data map[st
 		return fmt.Errorf("missing or invalid reference in webhook data")
 	}
 
-	logger.Info("Processing transfer.failed webhook", map[string]interface{}{
+	log.Printf("[INFO] Processing transfer.failed webhook", map[string]interface{}{
 		"reference": reference,
 	})
 
@@ -267,7 +267,7 @@ func (ws *WebhookService) emitPaymentVerifiedEvent(payment *models.Payment) erro
 		return fmt.Errorf("failed to publish event: %w", err)
 	}
 
-	logger.Info("PaymentVerified event emitted from webhook", map[string]interface{}{
+	log.Printf("[INFO] PaymentVerified event emitted from webhook", map[string]interface{}{
 		"event_id":   event.ID,
 		"payment_id": payment.PaymentID,
 		"user_id":    payment.UserID,

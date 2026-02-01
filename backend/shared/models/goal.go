@@ -30,6 +30,7 @@ type Goal struct {
 	Currency     string     `gorm:"not null;size:3;default:'NGN'" json:"currency"`
 	Deadline     *time.Time `json:"deadline,omitempty"`
 	Status       GoalStatus `gorm:"not null;default:'OPEN';size:20" json:"status"`
+	IsPublic     bool       `gorm:"not null;default:true" json:"is_public"`
 
 	// Deposit account details (where goal owner receives withdrawals)
 	DepositBankName      string `gorm:"size:100" json:"deposit_bank_name,omitempty"`

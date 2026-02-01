@@ -81,7 +81,7 @@ func main() {
 	withdrawalService := service.NewWithdrawalService(repo)
 	proofService := service.NewProofService(repo, publisher)
 	voteService := service.NewVoteService(repo, publisher)
-	refundService := service.NewRefundService(db)
+	refundService := service.NewRefundService(db, publisher)
 
 	// Initialize Event Handlers
 	eventHandler := events.NewEventHandler(contributionService, goalService, publisher)
@@ -117,6 +117,7 @@ func main() {
 	api := r.Group("/api/v1/goals")
 	{
 		// Public routes (or read-only)
+		api.GET("", goalController.ListPublicGoals)
 		api.GET("/:id", goalController.GetGoal)
 		api.GET("/:id/progress", goalController.GetGoalProgress)
 		api.GET("/proofs", contributionController.GetProofs)

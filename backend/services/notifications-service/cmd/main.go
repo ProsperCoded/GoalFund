@@ -144,6 +144,19 @@ func startEventConsumers(consumer *messaging.RabbitMQConsumer, eventHandler *han
 	if err := consumer.Consume("KYCVerified", eventHandler.HandleKYCVerified); err != nil {
 		log.Printf("Failed to consume KYCVerified events: %v", err)
 	}
+	
+	// Refund events
+	if err := consumer.Consume("ContributionRefunded", eventHandler.HandleContributionRefunded); err != nil {
+		log.Printf("Failed to consume ContributionRefunded events: %v", err)
+	}
+
+	if err := consumer.Consume("RefundInitiated", eventHandler.HandleRefundInitiated); err != nil {
+		log.Printf("Failed to consume RefundInitiated events: %v", err)
+	}
+
+	if err := consumer.Consume("RefundCompleted", eventHandler.HandleRefundCompleted); err != nil {
+		log.Printf("Failed to consume RefundCompleted events: %v", err)
+	}
 
 	log.Println("Event consumers started successfully")
 }

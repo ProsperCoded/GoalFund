@@ -19,6 +19,8 @@ const (
 	NotificationTypePasswordReset         NotificationType = "password_reset"
 	NotificationTypeEmailVerification     NotificationType = "email_verification"
 	NotificationTypeKYCVerified           NotificationType = "kyc_verified"
+	NotificationTypeRefundCompleted       NotificationType = "refund_completed"
+	NotificationTypeRefundInitiated       NotificationType = "refund_initiated"
 )
 
 // Notification represents a notification record

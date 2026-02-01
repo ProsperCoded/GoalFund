@@ -11,11 +11,14 @@ WORKDIR /app
 ARG APP_NAME
 ENV APP_NAME=${APP_NAME}
 
-# Copy module files first (for dependency caching)
-COPY shared/go.mod shared/go.sum ./shared/
+# Copy shared module first (required for replace directive)
+COPY shared/ ./shared/
+
+# Copy module files for the service
 COPY services/${APP_NAME}/go.mod services/${APP_NAME}/go.sum ./services/${APP_NAME}/
 
 # Download dependencies (this layer will be cached unless go.mod changes)
+# The shared module must be present for the replace directive to work
 WORKDIR /app/services/${APP_NAME}
 RUN --mount=type=cache,target=/go/pkg/mod \
     go mod download

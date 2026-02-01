@@ -52,6 +52,11 @@ func (s *GoalService) CreateGoal(ownerID uuid.UUID, req dto.CreateGoalRequest) (
 		DepositBankName:      req.BankName,
 		DepositAccountNumber: req.AccountNumber,
 		DepositAccountName:   req.AccountName,
+		IsPublic:             true,
+	}
+
+	if req.IsPublic != nil {
+		goal.IsPublic = *req.IsPublic
 	}
 
 	if err := s.repo.Goal.CreateGoal(goal); err != nil {
@@ -94,6 +99,18 @@ func (s *GoalService) GetGoalsByOwner(ownerID uuid.UUID) ([]models.Goal, error) 
 	return s.repo.Goal.GetGoalsByOwnerID(ownerID)
 }
 
+// ListPublicGoals retrieves all public goals with pagination
+func (s *GoalService) ListPublicGoals(page, pageSize int) ([]models.Goal, int64, error) {
+	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+	return s.repo.Goal.GetPublicGoals(pageSize, offset)
+}
+
 // UpdateGoal updates a goal
 func (s *GoalService) UpdateGoal(goalID, userID uuid.UUID, req dto.UpdateGoalRequest) (*models.Goal, error) {
 	goal, err := s.repo.Goal.GetGoalByIDSimple(goalID)
@@ -124,6 +141,9 @@ func (s *GoalService) UpdateGoal(goalID, userID uuid.UUID, req dto.UpdateGoalReq
 	}
 	if req.AccountName != nil {
 		goal.DepositAccountName = *req.AccountName
+	}
+	if req.IsPublic != nil {
+		goal.IsPublic = *req.IsPublic
 	}
 
 	if err := s.repo.Goal.UpdateGoal(goal); err != nil {

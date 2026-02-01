@@ -1,7 +1,6 @@
 package repository
 
 import (
-
 	"github.com/gofund/shared/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -65,6 +64,26 @@ func (r *GoalRepository) GetGoals(status *models.GoalStatus, limit, offset int) 
 	if status != nil {
 		query = query.Where("status = ?", *status)
 	}
+
+	// Get total count
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Get paginated results
+	err := query.Limit(limit).Offset(offset).
+		Order("created_at DESC").
+		Find(&goals).Error
+
+	return goals, total, err
+}
+
+// GetPublicGoals retrieves only public goals with pagination
+func (r *GoalRepository) GetPublicGoals(limit, offset int) ([]models.Goal, int64, error) {
+	var goals []models.Goal
+	var total int64
+
+	query := r.db.Model(&models.Goal{}).Where("is_public = ? AND status = ?", true, models.GoalStatusOpen)
 
 	// Get total count
 	if err := query.Count(&total).Error; err != nil {

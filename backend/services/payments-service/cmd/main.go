@@ -1,63 +1,150 @@
 package main
 
 import (
+	"context"
 	"log"
-	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gofund/payments-service/internal/config"
+	"github.com/gofund/payments-service/internal/controller"
+	"github.com/gofund/payments-service/internal/middleware"
+	"github.com/gofund/payments-service/internal/repository"
+	"github.com/gofund/payments-service/internal/service"
+	"github.com/gofund/shared/messaging"
 	"github.com/gofund/shared/metrics"
-	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
 )
 
 func main() {
-	// Load .env file if it exists (for local development)
-	if err := godotenv.Load(); err != nil {
-		log.Printf("No .env file found, using system environment variables")
+	// Load configuration
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
 	// Initialize Datadog tracing and metrics
-	serviceName := getEnv("DD_SERVICE", "payments-service")
-	env := getEnv("DD_ENV", "dev")
-	version := getEnv("DD_VERSION", "1.0.0")
-	
-	if err := metrics.InitDatadog(serviceName, env, version); err != nil {
+	if err := metrics.InitDatadog(cfg.ServiceName, cfg.DatadogEnv, cfg.DatadogVersion); err != nil {
 		log.Printf("Warning: Failed to initialize Datadog: %v", err)
 	} else {
-		log.Printf("Datadog initialized successfully for %s", serviceName)
+		log.Printf("Datadog initialized successfully for %s", cfg.ServiceName)
 	}
 	defer metrics.StopDatadog()
+
+	// Connect to MongoDB
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.MongoDBURI))
+	if err != nil {
+		log.Fatalf("Failed to connect to MongoDB: %v", err)
+	}
+	defer mongoClient.Disconnect(context.Background())
+
+	// Ping MongoDB to verify connection
+	if err := mongoClient.Ping(ctx, nil); err != nil {
+		log.Fatalf("Failed to ping MongoDB: %v", err)
+	}
+	log.Printf("Connected to MongoDB successfully")
+
+	// Get database
+	db := mongoClient.Database(cfg.MongoDBDatabase)
+
+	// Initialize repositories
+	paymentRepo := repository.NewPaymentRepository(db)
+	webhookRepo := repository.NewWebhookRepository(db)
+	idempotencyRepo := repository.NewIdempotencyRepository(db)
+
+	// Ensure indexes
+	if err := paymentRepo.EnsureIndexes(context.Background()); err != nil {
+		log.Printf("Warning: Failed to create payment indexes: %v", err)
+	}
+	if err := webhookRepo.EnsureIndexes(context.Background()); err != nil {
+		log.Printf("Warning: Failed to create webhook indexes: %v", err)
+	}
+	if err := idempotencyRepo.EnsureIndexes(context.Background()); err != nil {
+		log.Printf("Warning: Failed to create idempotency indexes: %v", err)
+	}
+
+	// Initialize RabbitMQ event publisher
+	eventPublisher, err := messaging.NewEventPublisher(cfg.RabbitMQURL)
+	if err != nil {
+		log.Fatalf("Failed to initialize event publisher: %v", err)
+	}
+	defer eventPublisher.Close()
+	log.Printf("Connected to RabbitMQ successfully")
+
+	// Initialize Paystack client
+	paystackClient := service.NewPaystackClient(cfg.PaystackSecretKey, cfg.PaystackBaseURL)
+
+	// Initialize services
+	paymentService := service.NewPaymentService(
+		paymentRepo,
+		idempotencyRepo,
+		paystackClient,
+		eventPublisher,
+	)
+
+	webhookService := service.NewWebhookService(
+		webhookRepo,
+		paymentRepo,
+		eventPublisher,
+	)
+
+	// Initialize controllers
+	paymentController := controller.NewPaymentController(paymentService)
+	webhookController := controller.NewWebhookController(webhookService)
 
 	// Initialize router
 	r := gin.Default()
 
 	// Add Datadog APM middleware
-	r.Use(gintrace.Middleware(serviceName))
+	r.Use(gintrace.Middleware(cfg.ServiceName))
+
+	// Health check endpoint
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":  "healthy",
+			"service": cfg.ServiceName,
+		})
+	})
 
 	// Setup routes
-	setupRoutes(r)
+	setupRoutes(r, paymentController, webhookController, cfg)
 
 	// Start server
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8081"
-	}
-
-	log.Printf("Payments Service starting on port %s", port)
-	if err := r.Run(":" + port); err != nil {
+	log.Printf("Payments Service starting on port %s", cfg.ServicePort)
+	if err := r.Run(":" + cfg.ServicePort); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }
 
-// getEnv gets environment variable with fallback
-func getEnv(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return fallback
-}
-
 // setupRoutes configures all Payments Service routes
-func setupRoutes(r *gin.Engine) {
-	// Routes will be configured here
+func setupRoutes(
+	r *gin.Engine,
+	paymentController *controller.PaymentController,
+	webhookController *controller.WebhookController,
+	cfg *config.Config,
+) {
+	// API v1 routes
+	v1 := r.Group("/api/v1/payments")
+	{
+		// Payment routes
+		v1.POST("/initialize", paymentController.InitializePayment)
+		v1.GET("/verify/:reference", paymentController.VerifyPayment)
+		v1.GET("/:paymentId/status", paymentController.GetPaymentStatus)
+		v1.GET("/banks", paymentController.ListBanks)
+		v1.GET("/resolve-account", paymentController.ResolveAccount)
+
+		// Webhook route (with signature verification middleware)
+		webhookSecret := cfg.PaystackSecretKey
+		if cfg.PaystackWebhookSecret != "" {
+			webhookSecret = cfg.PaystackWebhookSecret
+		}
+		v1.POST("/webhook", middleware.WebhookAuthMiddleware(webhookSecret), webhookController.HandleWebhook)
+	}
+
+	log.Printf("Routes configured successfully")
 }

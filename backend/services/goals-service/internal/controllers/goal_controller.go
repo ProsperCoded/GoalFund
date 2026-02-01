@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gofund/goals-service/internal/dto"
 	"github.com/gofund/goals-service/internal/service"
@@ -19,6 +21,25 @@ func NewGoalController(goalService *service.GoalService) *GoalController {
 	return &GoalController{
 		goalService: goalService,
 	}
+}
+
+// ListPublicGoals handles retrieving public goals with pagination
+func (gc *GoalController) ListPublicGoals(c *gin.Context) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+
+	goals, total, err := gc.goalService.ListPublicGoals(page, pageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":  goals,
+		"total": total,
+		"page":  page,
+		"size":  pageSize,
+	})
 }
 
 // CreateGoal handles goal creation

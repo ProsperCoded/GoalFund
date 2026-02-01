@@ -221,6 +221,23 @@ table "goals" {
     type = varchar(20)
     default = "OPEN"
   }
+  column "is_public" {
+    null = false
+    type = boolean
+    default = true
+  }
+  column "deposit_bank_name" {
+    null = true
+    type = varchar(100)
+  }
+  column "deposit_account_number" {
+    null = true
+    type = varchar(20)
+  }
+  column "deposit_account_name" {
+    null = true
+    type = varchar(255)
+  }
   column "created_at" {
     null = false
     type = timestamptz

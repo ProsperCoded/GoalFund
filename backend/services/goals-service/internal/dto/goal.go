@@ -17,6 +17,7 @@ type CreateGoalRequest struct {
 	AccountNumber string
 	AccountName   string
 	Milestones    []CreateMilestoneRequest
+	IsPublic      *bool
 }
 
 // CreateMilestoneRequest represents a request to create a milestone
@@ -38,6 +39,7 @@ type UpdateGoalRequest struct {
 	BankName      *string
 	AccountNumber *string
 	AccountName   *string
+	IsPublic      *bool
 }
 
 // GoalProgress represents goal progress information

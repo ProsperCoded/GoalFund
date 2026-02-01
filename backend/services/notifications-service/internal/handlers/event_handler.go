@@ -380,3 +380,84 @@ func (h *EventHandler) HandleKYCVerified(data []byte) error {
 	log.Printf("KYCVerified notification created for user %s", event.UserID)
 	return nil
 }
+
+// HandleContributionRefunded handles ContributionRefunded events
+func (h *EventHandler) HandleContributionRefunded(data []byte) error {
+	var event events.ContributionRefunded
+	if err := json.Unmarshal(data, &event); err != nil {
+		return fmt.Errorf("failed to unmarshal event: %w", err)
+	}
+
+	log.Printf("Processing ContributionRefunded event: %s for user %s", event.ID, event.UserID)
+
+	// Create notification
+	req := dto.CreateNotificationRequest{
+		UserID:  event.UserID,
+		Type:    models.NotificationTypeRefundCompleted,
+		Title:   "Refund Processed",
+		Message: fmt.Sprintf("Your refund of ₦%.2f for your contribution has been processed successfully.", float64(event.RefundAmount)/100),
+		Data: map[string]interface{}{
+			"contribution_id": event.ContributionID,
+			"goal_id":         event.GoalID,
+			"amount":          event.RefundAmount,
+			"email":           "", // This should be fetched from user service if needed for email
+		},
+	}
+
+	_, err := h.notificationService.CreateNotification(req)
+	if err != nil {
+		return fmt.Errorf("failed to create notification: %w", err)
+	}
+
+	log.Printf("ContributionRefunded notification created for user %s", event.UserID)
+	return nil
+}
+
+// HandleRefundInitiated handles RefundInitiated events
+func (h *EventHandler) HandleRefundInitiated(data []byte) error {
+	var event events.RefundInitiated
+	if err := json.Unmarshal(data, &event); err != nil {
+		return fmt.Errorf("failed to unmarshal event: %w", err)
+	}
+
+	log.Printf("Processing RefundInitiated event: %s for goal %s", event.ID, event.GoalID)
+
+	// Notify goal owner
+	req := dto.CreateNotificationRequest{
+		UserID:  event.InitiatedBy,
+		Type:    models.NotificationTypeRefundInitiated,
+		Title:   "Refund Initiated",
+		Message: fmt.Sprintf("A refund of %.1f%% (₦%.2f) has been initiated for your goal.", event.RefundPercentage, float64(event.TotalRefundAmount)/100),
+		Data: map[string]interface{}{
+			"refund_id": event.RefundID,
+			"goal_id":   event.GoalID,
+			"amount":    event.TotalRefundAmount,
+			"email":     "", 
+		},
+	}
+
+	_, err := h.notificationService.CreateNotification(req)
+	if err != nil {
+		return fmt.Errorf("failed to create notification: %w", err)
+	}
+
+	log.Printf("RefundInitiated notification created for user %s", event.InitiatedBy)
+	return nil
+}
+
+// HandleRefundCompleted handles RefundCompleted events
+func (h *EventHandler) HandleRefundCompleted(data []byte) error {
+	var event events.RefundCompleted
+	if err := json.Unmarshal(data, &event); err != nil {
+		return fmt.Errorf("failed to unmarshal event: %w", err)
+	}
+
+	log.Printf("Processing RefundCompleted event: %s for goal %s", event.ID, event.GoalID)
+
+	// In a complete implementation, we'd need the goal owner ID here.
+	// However, the RefundCompleted event doesn't have it currently.
+	// Since the goal owner initiated the refund, we could theoretically fetch the goal to find the owner.
+	// For now, we'll keep it as a log or if the event is updated to include InitiatedBy.
+	
+	return nil
+}

@@ -42,6 +42,7 @@ GoFund solves this by enforcing **ledger-based accounting**, **verified payments
 
   - Title, description, target amount (initial milestone)
   - Optional deadline
+  - **Visibility:** Goals are public by default but can be optionally set to private.
 
 - **Continuous Funding Model:**
 
@@ -283,6 +284,7 @@ INITIATED → PENDING → VERIFIED → FAILED
 - Owner can transition OPEN → CLOSED at any time
 - Milestones can be one-time or recurring (WEEKLY, MONTHLY, SEMESTER, YEARLY)
 - Bank account details required for withdrawals
+- **Visibility:** Goals are public by default. Public goals can be fetched via a paginated endpoint for public discovery.
 - **Refunds only allowed for CANCELLED or CLOSED goals**
 
 **Database Tables:**
@@ -410,7 +412,7 @@ INITIATED → PENDING → VERIFIED → FAILED
 - **KYCVerified** - Emitted by Users Service when a user completes KYC verification- **RefundInitiated** - Emitted by Goals Service when refund is initiated
 - **RefundCompleted** - Emitted by Payments Service when all refund disbursements complete
 - **ContributionRefunded** - Emitted when an individual contribution is refunded
-**Rules:**
+  **Rules:**
 
 - Services never mutate other services’ databases
 - Events are idempotent

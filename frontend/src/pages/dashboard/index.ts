@@ -1,0 +1,7 @@
+export { DashboardPage } from "./DashboardPage"
+export { MyGoalsPage } from "./MyGoalsPage"
+export { MyContributionsPage } from "./MyContributionsPage"
+export { ExplorePage } from "./ExplorePage"
+export { CreateGoalPage } from "./CreateGoalPage"
+export { GoalDetailPage } from "./GoalDetailPage"
+export { SettingsPage } from "./SettingsPage"

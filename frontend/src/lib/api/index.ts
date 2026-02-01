@@ -1,3 +1,7 @@
 export { authApi } from "./auth"
+export { goalsApi, contributionsApi } from "./goals"
+export { notificationsApi, notificationWs } from "./notifications"
+export { paymentsApi, nairaToKobo, koboToNaira, formatPaymentAmount } from "./payments"
+export type { Bank, ResolvedAccount, PaymentStatus, InitializePaymentRequest } from "./payments"
 export * from "./types"
 export { apiClient, API_BASE_URL } from "./config"

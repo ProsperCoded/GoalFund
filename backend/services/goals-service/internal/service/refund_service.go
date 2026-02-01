@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/gofund/goals-service/internal/dto"
+	"github.com/gofund/shared/events"
+	"github.com/gofund/shared/messaging"
 	"github.com/gofund/shared/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -12,12 +14,16 @@ import (
 
 // RefundService handles refund business logic
 type RefundService struct {
-	db *gorm.DB
+	db        *gorm.DB
+	publisher messaging.Publisher
 }
 
 // NewRefundService creates a new refund service instance
-func NewRefundService(db *gorm.DB) *RefundService {
-	return &RefundService{db: db}
+func NewRefundService(db *gorm.DB, publisher messaging.Publisher) *RefundService {
+	return &RefundService{
+		db:        db,
+		publisher: publisher,
+	}
 }
 
 // InitiateRefund initiates a refund for a goal
@@ -158,6 +164,20 @@ func (rs *RefundService) InitiateRefund(initiatedBy uuid.UUID, req *dto.Initiate
 		return nil, errors.New("failed to load refund details")
 	}
 
+	// Emit RefundInitiated event
+	if rs.publisher != nil {
+		event := events.RefundInitiated{
+			ID:                uuid.New().String(),
+			RefundID:          refund.ID.String(),
+			GoalID:            refund.GoalID.String(),
+			InitiatedBy:       refund.InitiatedBy.String(),
+			RefundPercentage:  refund.RefundPercentage,
+			TotalRefundAmount: refund.TotalRefundAmount,
+			CreatedAt:         time.Now().Unix(),
+		}
+		rs.publisher.Publish("RefundInitiated", event)
+	}
+
 	return refund, nil
 }
 
@@ -190,7 +210,26 @@ func (rs *RefundService) UpdateRefundStatus(refundID uuid.UUID, status models.Re
 		updates["completed_at"] = &now
 	}
 
-	return rs.db.Model(&models.Refund{}).Where("id = ?", refundID).Updates(updates).Error
+	if err := rs.db.Model(&models.Refund{}).Where("id = ?", refundID).Updates(updates).Error; err != nil {
+		return err
+	}
+
+	// Emit event if completed
+	if status == models.RefundStatusCompleted && rs.publisher != nil {
+		var refund models.Refund
+		if err := rs.db.First(&refund, "id = ?", refundID).Error; err == nil {
+			event := events.RefundCompleted{
+				ID:                uuid.New().String(),
+				RefundID:          refund.ID.String(),
+				GoalID:            refund.GoalID.String(),
+				TotalRefundAmount: refund.TotalRefundAmount,
+				CompletedAt:       time.Now().Unix(),
+			}
+			rs.publisher.Publish("RefundCompleted", event)
+		}
+	}
+
+	return nil
 }
 
 // UpdateDisbursementStatus updates the status of a refund disbursement
@@ -208,5 +247,25 @@ func (rs *RefundService) UpdateDisbursementStatus(disbursementID uuid.UUID, stat
 		updates["completed_at"] = &now
 	}
 
-	return rs.db.Model(&models.RefundDisbursement{}).Where("id = ?", disbursementID).Updates(updates).Error
+	if err := rs.db.Model(&models.RefundDisbursement{}).Where("id = ?", disbursementID).Updates(updates).Error; err != nil {
+		return err
+	}
+
+	// Emit event if completed
+	if status == models.RefundStatusCompleted && rs.publisher != nil {
+		var disbursement models.RefundDisbursement
+		if err := rs.db.Preload("Refund").First(&disbursement, "id = ?", disbursementID).Error; err == nil {
+			event := events.ContributionRefunded{
+				ID:             uuid.New().String(),
+				ContributionID: disbursement.ContributionID.String(),
+				UserID:         disbursement.UserID.String(),
+				GoalID:         disbursement.Refund.GoalID.String(),
+				RefundAmount:   disbursement.Amount,
+				CreatedAt:      time.Now().Unix(),
+			}
+			rs.publisher.Publish("ContributionRefunded", event)
+		}
+	}
+
+	return nil
 }

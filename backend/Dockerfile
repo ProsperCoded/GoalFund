@@ -20,8 +20,7 @@ COPY services/${APP_NAME}/go.mod services/${APP_NAME}/go.sum ./services/${APP_NA
 # Download dependencies (this layer will be cached unless go.mod changes)
 # The shared module must be present for the replace directive to work
 WORKDIR /app/services/${APP_NAME}
-RUN --mount=type=cache,target=/go/pkg/mod \
-    go mod download
+RUN go mod download
 
 # Copy the rest of the source code
 WORKDIR /app
@@ -30,9 +29,7 @@ COPY services/${APP_NAME}/ ./services/${APP_NAME}/
 
 # Build the specific service with optimized flags
 WORKDIR /app/services/${APP_NAME}
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o main ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o main ./cmd/main.go
 
 # Final stage
 FROM alpine:latest

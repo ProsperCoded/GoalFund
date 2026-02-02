@@ -41,7 +41,7 @@ func main() {
 	defer metrics.StopDatadog()
 
 	// Initialize Database
-	db, err := database.SetupDatabase(database.Config{
+	db, err := database.SetupServiceDatabase(database.Config{
 		Host:     cfg.Database.Host,
 		Port:     stringToInt(cfg.Database.Port),
 		User:     cfg.Database.User,
@@ -49,7 +49,7 @@ func main() {
 		DBName:   cfg.Database.DBName,
 		SSLMode:  cfg.Database.SSLMode,
 		LogLevel: logger.Info,
-	})
+	}, "goals")
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
@@ -116,35 +116,36 @@ func main() {
 	// Routes
 	api := r.Group("/api/v1/goals")
 	{
-		// Public routes (or read-only)
+		// Public routes (static paths first to avoid conflicts with /:id)
 		api.GET("", goalController.ListPublicGoals)
 		api.GET("/list", goalController.ListPublicGoals) // Alias for frontend compatibility
+		api.GET("/proofs", contributionController.GetProofs)
+		api.GET("/proofs/:proofId/stats", contributionController.GetVoteStats)
+		
+		// Public routes with ID parameter (must come after static paths)
 		api.GET("/:id", goalController.GetGoal)
 		api.GET("/view/:id", goalController.GetGoal) // Alias for frontend compatibility
 		api.GET("/:id/progress", goalController.GetGoalProgress)
-		api.GET("/proofs", contributionController.GetProofs)
-		api.GET("/proofs/:proofId/stats", contributionController.GetVoteStats)
 
 		// Protected routes
 		protected := api.Group("")
 		protected.Use(middleware.AuthMiddleware())
 		{
 			protected.GET("/my", goalController.GetMyGoals)
-			protected.POST("", goalController.CreateGoal)
-			protected.PATCH("/:id", goalController.UpdateGoal)
-			protected.POST("/:id/milestones", goalController.CreateMilestone)
-			protected.GET("/:goalId/milestones", goalController.GetGoalMilestones)
-			protected.POST("/milestones/:milestoneId/complete", goalController.CompleteMilestone)
-			
-			protected.POST("/contribute", contributionController.CreateContribution)
-			protected.POST("/withdraw", contributionController.CreateWithdrawal)
-			protected.POST("/proofs", contributionController.CreateProof)
-			protected.POST("/votes", contributionController.CreateVote)
+		protected.POST("", goalController.CreateGoal)
+		protected.PATCH("/:id", goalController.UpdateGoal)
+		protected.POST("/:id/milestones", goalController.CreateMilestone)
+		protected.GET("/:id/milestones", goalController.GetGoalMilestones)
+		protected.POST("/milestones/:milestoneId/complete", goalController.CompleteMilestone)
+		
+		protected.POST("/contribute", contributionController.CreateContribution)
+		protected.POST("/withdraw", contributionController.CreateWithdrawal)
+		protected.POST("/proofs", contributionController.CreateProof)
+		protected.POST("/votes", contributionController.CreateVote)
 
-			protected.POST("/refunds", refundController.InitiateRefund)
-			protected.GET("/refunds/:id", refundController.GetRefund)
-			protected.GET("/goals/:goalId/refunds", refundController.GetGoalRefunds)
-		}
+		protected.POST("/refunds", refundController.InitiateRefund)
+		protected.GET("/refunds/:id", refundController.GetRefund)
+		protected.GET("/:goalId/refunds", refundController.GetGoalRefunds)
 	}
 
 	// Contributions routes

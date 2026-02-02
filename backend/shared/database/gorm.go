@@ -97,36 +97,74 @@ func createEnumTypes(db *gorm.DB) error {
 func AutoMigrate(db *gorm.DB) error {
 	log.Println("Running GORM auto-migration...")
 
-	// User service models
+	// Migrate all shared models that might be referenced across services
 	if err := db.AutoMigrate(
 		&models.User{},
 		&models.Session{},
 		&models.PasswordResetToken{},
-	); err != nil {
-		return fmt.Errorf("failed to migrate user models: %w", err)
-	}
-
-	// Goal service models
-	if err := db.AutoMigrate(
 		&models.Goal{},
+		&models.Milestone{},
 		&models.Contribution{},
+		&models.Withdrawal{},
 		&models.Proof{},
 		&models.Vote{},
-	); err != nil {
-		return fmt.Errorf("failed to migrate goal models: %w", err)
-	}
-
-	// Ledger service models
-	if err := db.AutoMigrate(
 		&models.Account{},
 		&models.Transaction{},
 		&models.LedgerEntry{},
 		&models.BalanceSnapshot{},
 	); err != nil {
-		return fmt.Errorf("failed to migrate ledger models: %w", err)
+		return fmt.Errorf("failed to migrate models: %w", err)
 	}
 
 	log.Println("GORM auto-migration completed successfully")
+	return nil
+}
+
+// AutoMigrateService runs GORM auto-migration for specific service models only
+func AutoMigrateService(db *gorm.DB, serviceName string) error {
+	log.Printf("Running GORM auto-migration for %s...", serviceName)
+
+	switch serviceName {
+	case "users":
+		if err := db.AutoMigrate(
+			&models.User{},
+			&models.Session{},
+			&models.PasswordResetToken{},
+		); err != nil {
+			return fmt.Errorf("failed to migrate user models: %w", err)
+		}
+	case "goals":
+		if err := db.AutoMigrate(
+			&models.Goal{},
+			&models.Milestone{},
+			&models.Contribution{},
+			&models.Withdrawal{},
+			&models.Proof{},
+			&models.Vote{},
+		); err != nil {
+			return fmt.Errorf("failed to migrate goal models: %w", err)
+		}
+	case "ledger":
+		if err := db.AutoMigrate(
+			&models.Account{},
+			&models.Transaction{},
+			&models.LedgerEntry{},
+			&models.BalanceSnapshot{},
+		); err != nil {
+			return fmt.Errorf("failed to migrate ledger models: %w", err)
+		}
+	case "notifications":
+		if err := db.AutoMigrate(
+			&models.Notification{},
+			&models.NotificationPreferences{},
+		); err != nil {
+			return fmt.Errorf("failed to migrate notification models: %w", err)
+		}
+	default:
+		return fmt.Errorf("unknown service name: %s", serviceName)
+	}
+
+	log.Printf("GORM auto-migration for %s completed successfully", serviceName)
 	return nil
 }
 
@@ -144,12 +182,32 @@ func SetupDatabase(cfg Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to create enum types: %w", err)
 	}
 
-	// Run auto-migration
+	// Run auto-migration for all models (legacy - use SetupServiceDatabase for specific services)
 	if err := AutoMigrate(db); err != nil {
 		return nil, err
 	}
 
+	return db, nil
+}
 
+// SetupServiceDatabase initializes the database with migrations for a specific service
+func SetupServiceDatabase(cfg Config, serviceName string) (*gorm.DB, error) {
+	db, err := NewGormDB(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create enum types before running migrations (only for users service)
+	if serviceName == "users" {
+		if err := createEnumTypes(db); err != nil {
+			return nil, fmt.Errorf("failed to create enum types: %w", err)
+		}
+	}
+
+	// Run auto-migration for specific service models
+	if err := AutoMigrateService(db, serviceName); err != nil {
+		return nil, err
+	}
 
 	return db, nil
 }

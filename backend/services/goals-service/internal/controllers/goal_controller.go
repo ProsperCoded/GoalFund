@@ -219,7 +219,7 @@ func (gc *GoalController) GetMyGoals(c *gin.Context) {
 
 // GetGoalMilestones retrieves all milestones for a goal
 func (gc *GoalController) GetGoalMilestones(c *gin.Context) {
-	goalIDStr := c.Param("goalId")
+	goalIDStr := c.Param("id")
 	goalID, err := uuid.Parse(goalIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid goal ID"})

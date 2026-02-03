@@ -126,7 +126,7 @@ func main() {
 		api.GET("/:id", goalController.GetGoal)
 		api.GET("/view/:id", goalController.GetGoal) // Alias for frontend compatibility
 		api.GET("/:id/progress", goalController.GetGoalProgress)
-
+	}
 		// Protected routes
 		protected := api.Group("")
 		protected.Use(middleware.AuthMiddleware())
@@ -146,10 +146,8 @@ func main() {
 		protected.POST("/refunds", refundController.InitiateRefund)
 		protected.GET("/refunds/:id", refundController.GetRefund)
 		protected.GET("/:goalId/refunds", refundController.GetGoalRefunds)
-	}
-
-	// Contributions routes
-	contributions := r.Group("/api/v1/contributions")
+		}
+	contributions := api.Group("contributions")
 	contributions.Use(middleware.AuthMiddleware())
 	{
 		contributions.GET("/my", contributionController.GetMyContributions)

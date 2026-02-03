@@ -8,6 +8,7 @@ import {
   Users,
   ChevronRight,
 } from "lucide-react";
+import { useAuth } from "@/contexts";
 import { Button } from "@/components/ui/button";
 import {
   SplitText,
@@ -19,6 +20,8 @@ import {
 } from "@/components/animations";
 
 export function HeroSection() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <section className="relative min-h-[calc(100vh-4rem)] flex items-center overflow-hidden">
       {/* Squares Background */}
@@ -101,24 +104,24 @@ export function HeroSection() {
             <FadeIn delay={0.4}>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
                 <MagneticButton>
-                  <Link to="/register">
+                  <Link to={isAuthenticated ? "/dashboard" : "/register"}>
                     <Button
                       size="xl"
                       className="w-full sm:w-auto gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-8"
                     >
-                      Create a Goal
+                      {isAuthenticated ? "Go to Dashboard" : "Create a Goal"}
                       <ArrowRight className="w-5 h-5" />
                     </Button>
                   </Link>
                 </MagneticButton>
                 <MagneticButton>
-                  <Link to="/login">
+                  <Link to="/dashboard/explore">
                     <Button
                       size="xl"
                       variant="outline"
                       className="w-full sm:w-auto gap-2 border-primary/30 hover:bg-primary/5 hover:border-primary/50"
                     >
-                      Contribute Now
+                      {isAuthenticated ? "Contribute Publicly" : "Explore Goals"}
                       <ChevronRight className="w-5 h-5" />
                     </Button>
                   </Link>

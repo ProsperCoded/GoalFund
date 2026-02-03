@@ -114,7 +114,7 @@ func main() {
 	r.Use(gintrace.Middleware(cfg.Datadog.Service))
 
 	// Routes
-	api := r.Group("/api/v1/goals")
+	api := r.Group("goals")
 	{
 		// Public routes (static paths first to avoid conflicts with /:id)
 		api.GET("", goalController.ListPublicGoals)
@@ -126,28 +126,31 @@ func main() {
 		api.GET("/:id", goalController.GetGoal)
 		api.GET("/view/:id", goalController.GetGoal) // Alias for frontend compatibility
 		api.GET("/:id/progress", goalController.GetGoalProgress)
-	}
+
 		// Protected routes
 		protected := api.Group("")
 		protected.Use(middleware.AuthMiddleware())
 		{
 			protected.GET("/my", goalController.GetMyGoals)
-		protected.POST("", goalController.CreateGoal)
-		protected.PATCH("/:id", goalController.UpdateGoal)
-		protected.POST("/:id/milestones", goalController.CreateMilestone)
-		protected.GET("/:id/milestones", goalController.GetGoalMilestones)
-		protected.POST("/milestones/:milestoneId/complete", goalController.CompleteMilestone)
-		
-		protected.POST("/contribute", contributionController.CreateContribution)
-		protected.POST("/withdraw", contributionController.CreateWithdrawal)
-		protected.POST("/proofs", contributionController.CreateProof)
-		protected.POST("/votes", contributionController.CreateVote)
+			protected.POST("", goalController.CreateGoal)
+			protected.PATCH("/:id", goalController.UpdateGoal)
+			protected.POST("/:id/milestones", goalController.CreateMilestone)
+			protected.GET("/:id/milestones", goalController.GetGoalMilestones)
+			protected.POST("/milestones/:milestoneId/complete", goalController.CompleteMilestone)
+			
+			protected.POST("/contribute", contributionController.CreateContribution)
+			protected.POST("/withdraw", contributionController.CreateWithdrawal)
+			protected.POST("/proofs", contributionController.CreateProof)
+			protected.POST("/votes", contributionController.CreateVote)
 
-		protected.POST("/refunds", refundController.InitiateRefund)
-		protected.GET("/refunds/:id", refundController.GetRefund)
-		protected.GET("/:goalId/refunds", refundController.GetGoalRefunds)
+			protected.POST("/refunds", refundController.InitiateRefund)
+			protected.GET("/refunds/:id", refundController.GetRefund)
+			protected.GET("/:id/refunds", refundController.GetGoalRefunds)
 		}
-	contributions := api.Group("contributions")
+	}
+
+	// Contributions routes
+	contributions := r.Group("/contributions")
 	contributions.Use(middleware.AuthMiddleware())
 	{
 		contributions.GET("/my", contributionController.GetMyContributions)

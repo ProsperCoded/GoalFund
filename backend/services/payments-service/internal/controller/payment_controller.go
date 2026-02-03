@@ -42,7 +42,7 @@ func (pc *PaymentController) InitializePayment(c *gin.Context) {
 	if err != nil {
 		log.Printf("[INFO] Failed to initialize payment", map[string]interface{}{
 			"error":   err.Error(),
-			"user_id": req.UserID.String(),
+			"user_id": req.UserID,
 			"goal_id": req.GoalID.String(),
 			"amount":  req.Amount,
 		})

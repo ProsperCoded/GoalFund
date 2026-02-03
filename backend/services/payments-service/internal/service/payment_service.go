@@ -44,11 +44,14 @@ func (ps *PaymentService) InitializePayment(ctx context.Context, req *dto.Initia
 	paymentID := uuid.New().String()
 	reference := fmt.Sprintf("PAY-%s", uuid.New().String()[:13])
 
+	// Handle guest contributions (empty user_id)
+	userIDStr := req.UserID // Already a string, can be empty for guest contributions
+
 	// Create payment record with INITIATED status
 	payment := &models.Payment{
 		PaymentID:         paymentID,
 		PaystackReference: reference,
-		UserID:            req.UserID.String(),
+		UserID:            userIDStr,
 		GoalID:            req.GoalID.String(),
 		Amount:            req.Amount,
 		Currency:          req.Currency,
@@ -57,7 +60,7 @@ func (ps *PaymentService) InitializePayment(ctx context.Context, req *dto.Initia
 
 	if err := ps.paymentRepo.CreatePayment(ctx, payment); err != nil {
 		log.Printf("[ERROR] Failed to create payment record: %v (user_id: %s, goal_id: %s)",
-			err, req.UserID.String(), req.GoalID.String())
+			err, userIDStr, req.GoalID.String())
 		metrics.IncrementCounter("payment.creation.failed")
 		return nil, fmt.Errorf("failed to create payment: %w", err)
 	}
@@ -71,8 +74,9 @@ func (ps *PaymentService) InitializePayment(ctx context.Context, req *dto.Initia
 		CallbackURL: req.CallbackURL,
 		Metadata: map[string]interface{}{
 			"payment_id": paymentID,
-			"user_id":    req.UserID.String(),
+			"user_id":    userIDStr,
 			"goal_id":    req.GoalID.String(),
+			"is_guest":   userIDStr == "",
 		},
 		Channels: []string{"card", "bank", "ussd", "qr", "mobile_money", "bank_transfer"},
 	}

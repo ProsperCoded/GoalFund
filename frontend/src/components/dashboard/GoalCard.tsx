@@ -19,11 +19,21 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ goal, showActions = false, onDelete }: GoalCardProps) {
-  const progress = Math.min((goal.current_amount / goal.target_amount) * 100, 100)
-  const isOverfunded = goal.current_amount > goal.target_amount
+  // Handle potential NaN by defaulting to 0
+  const currentAmount = goal.current_amount || 0
+  const targetAmount = goal.target_amount || 1
+  const contributorCount = goal.contributor_count || 0
+  
+  const progress = Math.min((currentAmount / targetAmount) * 100, 100)
+  const isOverfunded = currentAmount > targetAmount
 
+  // Normalize status to lowercase for comparison
+  const statusLower = goal.status?.toLowerCase() || "open"
+  
   const statusColors: Record<string, string> = {
     open: "bg-green-500/10 text-green-500 border-green-500/20",
+    funded: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    withdrawn: "bg-purple-500/10 text-purple-500 border-purple-500/20",
     closed: "bg-gray-500/10 text-gray-500 border-gray-500/20",
     cancelled: "bg-red-500/10 text-red-500 border-red-500/20",
   }
@@ -40,10 +50,10 @@ export function GoalCard({ goal, showActions = false, onDelete }: GoalCardProps)
             <span
               className={cn(
                 "px-2 py-0.5 text-xs font-medium rounded-full border capitalize",
-                statusColors[goal.status]
+                statusColors[statusLower] || statusColors.open
               )}
             >
-              {goal.status}
+              {statusLower}
             </span>
             {!goal.is_public && (
               <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-muted text-muted-foreground border border-border">
@@ -100,15 +110,15 @@ export function GoalCard({ goal, showActions = false, onDelete }: GoalCardProps)
       <div className="mt-4">
         <div className="flex items-center justify-between text-sm mb-2">
           <span className="font-medium">
-            {formatCurrency(goal.current_amount)}
+            {formatCurrency(currentAmount)}
             {isOverfunded && (
               <span className="text-green-500 ml-1">
-                (+{formatCurrency(goal.current_amount - goal.target_amount)})
+                (+{formatCurrency(currentAmount - targetAmount)})
               </span>
             )}
           </span>
           <span className="text-muted-foreground">
-            of {formatCurrency(goal.target_amount)}
+            of {formatCurrency(targetAmount)}
           </span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -121,7 +131,7 @@ export function GoalCard({ goal, showActions = false, onDelete }: GoalCardProps)
           />
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          {progress.toFixed(0)}% funded
+          {isNaN(progress) ? 0 : progress.toFixed(0)}% funded
         </p>
       </div>
 
@@ -129,7 +139,7 @@ export function GoalCard({ goal, showActions = false, onDelete }: GoalCardProps)
       <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border text-sm text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <Users className="w-4 h-4" />
-          <span>{goal.contributor_count} contributors</span>
+          <span>{contributorCount} contributors</span>
         </div>
         {goal.deadline && (
           <div className="flex items-center gap-1.5">
@@ -144,7 +154,11 @@ export function GoalCard({ goal, showActions = false, onDelete }: GoalCardProps)
 
 // Compact version for lists
 export function GoalCardCompact({ goal }: { goal: Goal }) {
-  const progress = Math.min((goal.current_amount / goal.target_amount) * 100, 100)
+  // Handle potential NaN by defaulting to 0
+  const currentAmount = goal.current_amount || 0
+  const targetAmount = goal.target_amount || 1
+  
+  const progress = Math.min((currentAmount / targetAmount) * 100, 100)
 
   return (
     <Link
@@ -160,18 +174,18 @@ export function GoalCardCompact({ goal }: { goal: Goal }) {
           <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-primary rounded-full"
-              style={{ width: `${progress}%` }}
+              style={{ width: `${isNaN(progress) ? 0 : progress}%` }}
             />
           </div>
           <span className="text-xs text-muted-foreground flex-shrink-0">
-            {progress.toFixed(0)}%
+            {isNaN(progress) ? 0 : progress.toFixed(0)}%
           </span>
         </div>
       </div>
       <div className="text-right flex-shrink-0">
-        <p className="text-sm font-medium">{formatCurrency(goal.current_amount)}</p>
+        <p className="text-sm font-medium">{formatCurrency(currentAmount)}</p>
         <p className="text-xs text-muted-foreground">
-          of {formatCurrency(goal.target_amount)}
+          of {formatCurrency(targetAmount)}
         </p>
       </div>
     </Link>

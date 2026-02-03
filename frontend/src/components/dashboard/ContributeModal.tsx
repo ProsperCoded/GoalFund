@@ -8,6 +8,7 @@ import {
   CheckCircle,
   AlertCircle,
   Heart,
+  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { paymentsApi, nairaToKobo, type Goal } from "@/lib/api"
@@ -88,8 +89,12 @@ export function ContributeModal({
       return
     }
 
-    const numericAmount = parseInt(amount, 10)
-    if (isNaN(numericAmount) || numericAmount < 100) {
+    // Use fixed amount if available, otherwise use user input
+    const contributionAmount = goal.fixed_contribution_amount 
+      ? goal.fixed_contribution_amount 
+      : parseInt(amount, 10)
+    
+    if (isNaN(contributionAmount) || contributionAmount < 100) {
       toast({
         variant: "destructive",
         title: "Invalid amount",
@@ -105,7 +110,7 @@ export function ContributeModal({
       const response = await paymentsApi.initialize({
         user_id: user.id,
         goal_id: goal.id,
-        amount: nairaToKobo(numericAmount),
+        amount: nairaToKobo(contributionAmount),
         currency: "NGN",
         email: user.email,
         callback_url: `${window.location.origin}/dashboard/goals/${goal.id}?payment=true`,
@@ -154,7 +159,9 @@ export function ContributeModal({
     }
   }
 
-  const numericAmount = parseInt(amount, 10) || 0
+  // Calculate contribution amount - use fixed amount if available
+  const fixedAmount = goal.fixed_contribution_amount
+  const numericAmount = fixedAmount || parseInt(amount, 10) || 0
   const isValidAmount = numericAmount >= 100
 
   return (
@@ -204,47 +211,75 @@ export function ContributeModal({
                     </div>
                   </div>
 
-                  {/* Amount Input */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium">Enter Amount</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                        ₦
-                      </span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={amount}
-                        onChange={(e) => handleAmountChange(e.target.value)}
-                        placeholder="0"
-                        className="w-full pl-8 pr-4 py-3 text-2xl font-semibold bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                      />
-                    </div>
-                    {amount && !isValidAmount && (
-                      <p className="text-sm text-destructive">
-                        Minimum contribution is ₦100
+                  {/* Fixed Contribution Amount Notice */}
+                  {fixedAmount && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium text-primary">Group Contribution</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        This goal requires a fixed contribution of{" "}
+                        <span className="font-semibold text-foreground">
+                          {formatCurrency(fixedAmount)}
+                        </span>
                       </p>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
-                  {/* Quick Amounts */}
-                  <div className="flex flex-wrap gap-2">
-                    {quickAmounts.map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => handleQuickAmount(value)}
-                        className={cn(
-                          "px-3 py-1.5 text-sm rounded-full border transition-colors",
-                          amount === value.toString()
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border hover:border-primary/50"
+                  {/* Amount Input - Only show if no fixed amount */}
+                  {!fixedAmount ? (
+                    <>
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium">Enter Amount</label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                            ₦
+                          </span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={amount}
+                            onChange={(e) => handleAmountChange(e.target.value)}
+                            placeholder="0"
+                            className="w-full pl-8 pr-4 py-3 text-2xl font-semibold bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                          />
+                        </div>
+                        {amount && !isValidAmount && (
+                          <p className="text-sm text-destructive">
+                            Minimum contribution is ₦100
+                          </p>
                         )}
-                      >
-                        ₦{value.toLocaleString()}
-                      </button>
-                    ))}
-                  </div>
+                      </div>
+
+                      {/* Quick Amounts */}
+                      <div className="flex flex-wrap gap-2">
+                        {quickAmounts.map((value) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => handleQuickAmount(value)}
+                            className={cn(
+                              "px-3 py-1.5 text-sm rounded-full border transition-colors",
+                              amount === value.toString()
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-border hover:border-primary/50"
+                            )}
+                          >
+                            ₦{value.toLocaleString()}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    /* Fixed Amount Display */
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Contribution Amount</label>
+                      <div className="w-full px-4 py-3 text-2xl font-semibold bg-muted/50 border border-input rounded-lg text-center">
+                        {formatCurrency(fixedAmount)}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Message (Optional) */}
                   <div className="space-y-2">

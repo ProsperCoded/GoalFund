@@ -10,6 +10,7 @@ import {
   Lock,
   Info,
   Loader2,
+  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { goalsApi } from "@/lib/api"
@@ -20,6 +21,8 @@ interface FormData {
   title: string
   description: string
   target_amount: string
+  fixed_contribution_amount: string
+  has_fixed_amount: boolean
   deadline: string
   is_public: boolean
 }
@@ -28,6 +31,7 @@ interface FormErrors {
   title?: string
   description?: string
   target_amount?: string
+  fixed_contribution_amount?: string
 }
 
 export function CreateGoalPage() {
@@ -38,6 +42,8 @@ export function CreateGoalPage() {
     title: "",
     description: "",
     target_amount: "",
+    fixed_contribution_amount: "",
+    has_fixed_amount: false,
     deadline: "",
     is_public: false,
   })
@@ -65,6 +71,16 @@ export function CreateGoalPage() {
       newErrors.target_amount = "Maximum target is ₦100,000,000"
     }
 
+    // Validate fixed contribution amount if enabled
+    if (formData.has_fixed_amount) {
+      const fixedAmount = parseInt(formData.fixed_contribution_amount, 10)
+      if (isNaN(fixedAmount) || fixedAmount < 100) {
+        newErrors.fixed_contribution_amount = "Minimum fixed amount is ₦100"
+      } else if (fixedAmount > amount) {
+        newErrors.fixed_contribution_amount = "Fixed amount cannot exceed target amount"
+      }
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -86,10 +102,15 @@ export function CreateGoalPage() {
 
     setIsSubmitting(true)
     try {
+      const fixedAmount = formData.has_fixed_amount 
+        ? parseInt(formData.fixed_contribution_amount, 10) 
+        : null
+
       const response = await goalsApi.create({
         title: formData.title,
         description: formData.description,
         target_amount: parseInt(formData.target_amount, 10),
+        fixed_contribution_amount: fixedAmount,
         is_public: formData.is_public,
         currency: "NGN",
         deadline: formData.deadline
@@ -217,6 +238,62 @@ export function CreateGoalPage() {
           <p className="text-xs text-muted-foreground">
             Minimum: ₦10,000 • Maximum: ₦100,000,000
           </p>
+        </div>
+
+        {/* Fixed Contribution Amount Toggle */}
+        <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="has_fixed_amount"
+              checked={formData.has_fixed_amount}
+              onChange={(e) => setFormData((prev) => ({ 
+                ...prev, 
+                has_fixed_amount: e.target.checked,
+                fixed_contribution_amount: e.target.checked ? prev.fixed_contribution_amount : ""
+              }))}
+              className="mt-1 w-4 h-4 rounded border-input"
+            />
+            <div className="flex-1">
+              <label htmlFor="has_fixed_amount" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                <Users className="w-4 h-4 text-primary" />
+                Fixed Contribution Amount (Group Contribution)
+              </label>
+              <p className="text-xs text-muted-foreground mt-1">
+                Enable this for group contributions where everyone pays the same amount. 
+                Useful for dues, subscriptions, or equal-share funding.
+              </p>
+            </div>
+          </div>
+
+          {formData.has_fixed_amount && (
+            <div className="space-y-2 pl-7">
+              <label htmlFor="fixed_contribution_amount" className="text-sm font-medium">
+                Amount per Contributor (₦) <span className="text-destructive">*</span>
+              </label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  id="fixed_contribution_amount"
+                  name="fixed_contribution_amount"
+                  type="number"
+                  placeholder="10000"
+                  value={formData.fixed_contribution_amount}
+                  onChange={handleChange}
+                  className={cn(
+                    "w-full pl-10 pr-4 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
+                    errors.fixed_contribution_amount ? "border-destructive" : "border-input"
+                  )}
+                />
+              </div>
+              {errors.fixed_contribution_amount && (
+                <p className="text-sm text-destructive">{errors.fixed_contribution_amount}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Every contributor will pay exactly this amount. Minimum: ₦100
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Deadline */}

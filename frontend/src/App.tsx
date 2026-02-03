@@ -8,8 +8,10 @@ import {
   ExplorePage,
   CreateGoalPage,
   GoalDetailPage,
+  EditGoalPage,
   SettingsPage,
 } from "@/pages/dashboard"
+import { PublicGoalPage } from "@/pages/public"
 import { DashboardLayout } from "@/components/dashboard"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { AuthProvider } from "@/contexts"
@@ -26,6 +28,9 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
 
+          {/* Public Goal Page - For sharing & contributions */}
+          <Route path="/g/:goalId" element={<PublicGoalPage />} />
+
           {/* Dashboard Routes - Protected */}
           <Route
             path="/dashboard"
@@ -39,6 +44,7 @@ function App() {
             <Route path="goals" element={<MyGoalsPage />} />
             <Route path="goals/create" element={<CreateGoalPage />} />
             <Route path="goals/:goalId" element={<GoalDetailPage />} />
+            <Route path="goals/:goalId/edit" element={<EditGoalPage />} />
             <Route path="contributions" element={<MyContributionsPage />} />
             <Route path="explore" element={<ExplorePage />} />
             <Route path="settings" element={<SettingsPage />} />

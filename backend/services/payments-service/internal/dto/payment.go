@@ -4,7 +4,7 @@ import "github.com/google/uuid"
 
 // InitializePaymentRequest represents a request to initialize a payment
 type InitializePaymentRequest struct {
-	UserID      uuid.UUID              `json:"user_id" binding:"required"`
+	UserID      string                 `json:"user_id"`                           // Optional for guest contributions (empty string allowed)
 	GoalID      uuid.UUID              `json:"goal_id" binding:"required"`
 	Amount      int64                  `json:"amount" binding:"required,min=100"` // Minimum 1 NGN (100 kobo)
 	Currency    string                 `json:"currency" binding:"required"`

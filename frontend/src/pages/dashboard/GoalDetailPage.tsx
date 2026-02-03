@@ -107,22 +107,23 @@ export function GoalDetailPage() {
   }
 
   const handleShare = async () => {
-    const url = window.location.href
+    // Share the public URL, not the dashboard URL
+    const publicUrl = `${window.location.origin}/g/${goal?.id}`
     if (navigator.share) {
       try {
         await navigator.share({
           title: goal?.title,
           text: goal?.description,
-          url,
+          url: publicUrl,
         })
       } catch (error) {
         // User cancelled or error
       }
     } else {
-      await navigator.clipboard.writeText(url)
+      await navigator.clipboard.writeText(publicUrl)
       toast({
         title: "Link copied!",
-        description: "Goal link has been copied to clipboard.",
+        description: "Public goal link has been copied to clipboard.",
       })
     }
   }
@@ -150,8 +151,14 @@ export function GoalDetailPage() {
     )
   }
 
-  const progress = Math.min((goal.current_amount / goal.target_amount) * 100, 100)
-  const isOverfunded = goal.current_amount > goal.target_amount
+  // Handle potential NaN by defaulting to 0
+  const currentAmount = goal.current_amount || 0
+  const targetAmount = goal.target_amount || 1
+  const contributorCount = goal.contributor_count || 0
+  const statusLower = goal.status?.toLowerCase() || "open"
+
+  const progress = Math.min((currentAmount / targetAmount) * 100, 100)
+  const isOverfunded = currentAmount > targetAmount
   const daysLeft = goal.deadline
     ? Math.max(
         0,
@@ -198,12 +205,12 @@ export function GoalDetailPage() {
                 <span
                   className={cn(
                     "px-2 py-0.5 text-xs font-medium rounded-full border capitalize",
-                    goal.status === "open"
+                    statusLower === "open"
                       ? "bg-green-500/10 text-green-500 border-green-500/20"
                       : "bg-gray-500/10 text-gray-500 border-gray-500/20"
                   )}
                 >
-                  {goal.status}
+                  {statusLower}
                 </span>
                 {goal.is_public ? (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -226,7 +233,7 @@ export function GoalDetailPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate(`/dashboard/goals/${goalId}/edit`)}>
                       <Edit className="w-4 h-4 mr-2" />
                       Edit Goal
                     </DropdownMenuItem>
@@ -251,7 +258,7 @@ export function GoalDetailPage() {
             <div className="flex flex-wrap items-center gap-4 mt-6 pt-4 border-t border-border text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <Users className="w-4 h-4" />
-                <span>{goal.contributor_count} contributors</span>
+                <span>{contributorCount} contributors</span>
               </div>
               {goal.deadline && (
                 <div className="flex items-center gap-1.5">
@@ -338,17 +345,30 @@ export function GoalDetailPage() {
             {/* Amount Raised */}
             <div className="mb-4">
               <p className="text-3xl font-bold">
-                {formatCurrency(goal.current_amount)}
+                {formatCurrency(currentAmount)}
                 {isOverfunded && (
                   <span className="text-green-500 text-lg ml-1">
-                    (+{formatCurrency(goal.current_amount - goal.target_amount)})
+                    (+{formatCurrency(currentAmount - targetAmount)})
                   </span>
                 )}
               </p>
               <p className="text-sm text-muted-foreground">
-                raised of {formatCurrency(goal.target_amount)} goal
+                raised of {formatCurrency(targetAmount)} goal
               </p>
             </div>
+
+            {/* Fixed Contribution Amount Info */}
+            {goal.fixed_contribution_amount && (
+              <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">Group Contribution</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Fixed amount: <span className="font-semibold text-foreground">{formatCurrency(goal.fixed_contribution_amount)}</span>
+                </p>
+              </div>
+            )}
 
             {/* Progress Bar */}
             <div className="mb-4">
@@ -358,17 +378,17 @@ export function GoalDetailPage() {
                     "h-full rounded-full transition-all",
                     isOverfunded ? "bg-green-500" : "bg-primary"
                   )}
-                  style={{ width: `${Math.min(progress, 100)}%` }}
+                  style={{ width: `${Math.min(isNaN(progress) ? 0 : progress, 100)}%` }}
                 />
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                {progress.toFixed(0)}% funded
+                {isNaN(progress) ? 0 : progress.toFixed(0)}% funded
               </p>
             </div>
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              {goal.status === "open" && (
+              {statusLower === "open" && (
                 <Button
                   onClick={() => setIsContributeOpen(true)}
                   className="w-full gap-2"
@@ -388,7 +408,7 @@ export function GoalDetailPage() {
                 Share Goal
               </Button>
 
-              {isOwner && goal.current_amount > 0 && (
+              {isOwner && currentAmount > 0 && (
                 <Button variant="outline" className="w-full gap-2">
                   <Banknote className="w-4 h-4" />
                   Withdraw Funds
@@ -399,7 +419,7 @@ export function GoalDetailPage() {
             {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-border">
               <div>
-                <p className="text-2xl font-bold">{goal.contributor_count}</p>
+                <p className="text-2xl font-bold">{contributorCount}</p>
                 <p className="text-xs text-muted-foreground">Contributors</p>
               </div>
               <div>

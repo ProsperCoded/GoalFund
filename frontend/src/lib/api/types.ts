@@ -82,7 +82,7 @@ export interface ApiError {
 }
 
 // Goal Types
-export type GoalStatus = "open" | "closed" | "cancelled"
+export type GoalStatus = "open" | "closed" | "cancelled" | "OPEN" | "FUNDED" | "WITHDRAWN" | "CLOSED" | "CANCELLED"
 export type MilestoneRecurrence = "one_time" | "weekly" | "monthly" | "semester" | "yearly"
 
 export interface Goal {
@@ -93,6 +93,7 @@ export interface Goal {
   title: string
   description: string
   target_amount: number
+  fixed_contribution_amount?: number | null // Fixed amount each contributor must pay (null = any amount allowed)
   current_amount: number
   currency?: string
   contributor_count: number
@@ -104,6 +105,9 @@ export interface Goal {
   bank_name?: string
   bank_account_number?: string
   bank_account_name?: string
+  deposit_bank_name?: string
+  deposit_account_number?: string
+  deposit_account_name?: string
   total_withdrawn?: number
   milestones?: Milestone[]
   proofs?: Proof[]
@@ -113,6 +117,7 @@ export interface GoalCreateRequest {
   title: string
   description: string
   target_amount: number
+  fixed_contribution_amount?: number | null // Fixed amount each contributor must pay (null = any amount allowed)
   currency?: string
   is_public: boolean
   deadline?: string

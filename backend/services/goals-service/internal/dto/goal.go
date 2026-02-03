@@ -8,16 +8,17 @@ import (
 
 // CreateGoalRequest represents a request to create a goal
 type CreateGoalRequest struct {
-	Title         string
-	Description   string
-	TargetAmount  int64
-	Currency      string
-	Deadline      *time.Time
-	BankName      string
-	AccountNumber string
-	AccountName   string
-	Milestones    []CreateMilestoneRequest
-	IsPublic      *bool
+	Title                   string
+	Description             string
+	TargetAmount            int64
+	FixedContributionAmount *int64 // Fixed amount each contributor must pay (nil = any amount allowed)
+	Currency                string
+	Deadline                *time.Time
+	BankName                string
+	AccountNumber           string
+	AccountName             string
+	Milestones              []CreateMilestoneRequest
+	IsPublic                *bool
 }
 
 // CreateMilestoneRequest represents a request to create a milestone
@@ -34,12 +35,13 @@ type CreateMilestoneRequest struct {
 
 // UpdateGoalRequest represents a request to update a goal
 type UpdateGoalRequest struct {
-	Title         *string
-	Description   *string
-	BankName      *string
-	AccountNumber *string
-	AccountName   *string
-	IsPublic      *bool
+	Title                   *string
+	Description             *string
+	FixedContributionAmount *int64 // Fixed amount each contributor must pay (nil = any amount allowed, 0 = remove fixed amount)
+	BankName                *string
+	AccountNumber           *string
+	AccountName             *string
+	IsPublic                *bool
 }
 
 // GoalProgress represents goal progress information

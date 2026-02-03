@@ -34,8 +34,37 @@ func (gc *GoalController) ListPublicGoals(c *gin.Context) {
 		return
 	}
 
+	// Enrich goals with computed fields
+	enrichedGoals := make([]gin.H, len(goals))
+	for i, goal := range goals {
+		progress, _ := gc.goalService.GetGoalProgress(goal.ID)
+		currentAmount := int64(0)
+		contributorCount := int64(0)
+		if progress != nil {
+			currentAmount = progress.TotalContributions
+			contributorCount = progress.ContributorCount
+		}
+		
+		enrichedGoals[i] = gin.H{
+			"id":                        goal.ID,
+			"owner_id":                  goal.OwnerID,
+			"title":                     goal.Title,
+			"description":               goal.Description,
+			"target_amount":             goal.TargetAmount,
+			"fixed_contribution_amount": goal.FixedContributionAmount,
+			"current_amount":            currentAmount,
+			"currency":                  goal.Currency,
+			"deadline":                  goal.Deadline,
+			"status":                    goal.Status,
+			"is_public":                 goal.IsPublic,
+			"created_at":                goal.CreatedAt,
+			"updated_at":                goal.UpdatedAt,
+			"contributor_count":         contributorCount,
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"data":  goals,
+		"data":  enrichedGoals,
 		"total": total,
 		"page":  page,
 		"size":  pageSize,
@@ -86,7 +115,37 @@ func (gc *GoalController) GetGoal(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, goal)
+	// Get progress info for current_amount and contributor_count
+	progress, err := gc.goalService.GetGoalProgress(id)
+	if err != nil {
+		c.JSON(http.StatusOK, goal)
+		return
+	}
+
+	// Return goal with computed fields
+	c.JSON(http.StatusOK, gin.H{
+		"id":                        goal.ID,
+		"owner_id":                  goal.OwnerID,
+		"title":                     goal.Title,
+		"description":               goal.Description,
+		"target_amount":             goal.TargetAmount,
+		"fixed_contribution_amount": goal.FixedContributionAmount,
+		"current_amount":            progress.TotalContributions,
+		"currency":                  goal.Currency,
+		"deadline":                  goal.Deadline,
+		"status":                    goal.Status,
+		"is_public":                 goal.IsPublic,
+		"deposit_bank_name":         goal.DepositBankName,
+		"deposit_account_number":    goal.DepositAccountNumber,
+		"deposit_account_name":      goal.DepositAccountName,
+		"created_at":                goal.CreatedAt,
+		"updated_at":                goal.UpdatedAt,
+		"contributor_count":         progress.ContributorCount,
+		"milestones":                goal.Milestones,
+		"contributions":             goal.Contributions,
+		"withdrawals":               goal.Withdrawals,
+		"proofs":                    goal.Proofs,
+	})
 }
 
 // UpdateGoal updates a goal
@@ -209,8 +268,40 @@ func (gc *GoalController) GetMyGoals(c *gin.Context) {
 		return
 	}
 
+	// Enrich goals with computed fields
+	enrichedGoals := make([]gin.H, len(goals))
+	for i, goal := range goals {
+		progress, _ := gc.goalService.GetGoalProgress(goal.ID)
+		currentAmount := int64(0)
+		contributorCount := int64(0)
+		if progress != nil {
+			currentAmount = progress.TotalContributions
+			contributorCount = progress.ContributorCount
+		}
+		
+		enrichedGoals[i] = gin.H{
+			"id":                        goal.ID,
+			"owner_id":                  goal.OwnerID,
+			"title":                     goal.Title,
+			"description":               goal.Description,
+			"target_amount":             goal.TargetAmount,
+			"fixed_contribution_amount": goal.FixedContributionAmount,
+			"current_amount":            currentAmount,
+			"currency":                  goal.Currency,
+			"deadline":                  goal.Deadline,
+			"status":                    goal.Status,
+			"is_public":                 goal.IsPublic,
+			"deposit_bank_name":         goal.DepositBankName,
+			"deposit_account_number":    goal.DepositAccountNumber,
+			"deposit_account_name":      goal.DepositAccountName,
+			"created_at":                goal.CreatedAt,
+			"updated_at":                goal.UpdatedAt,
+			"contributor_count":         contributorCount,
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"goals": goals,
+		"goals": enrichedGoals,
 		"total": total,
 		"page":  page,
 		"limit": pageSize,

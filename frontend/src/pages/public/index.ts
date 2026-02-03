@@ -1,0 +1,1 @@
+export { PublicGoalPage } from "./PublicGoalPage"

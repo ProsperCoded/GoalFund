@@ -134,23 +134,28 @@ func setupRoutes(
 	webhookController *controller.WebhookController,
 	cfg *config.Config,
 ) {
-	// API v1 routes
-	v1 := r.Group("/api/v1/payments")
+	// Routes without /api/v1 prefix since nginx strips it
+	// nginx rewrites /api/v1/payments/* to /payments/*
+	payments := r.Group("/payments")
 	{
 		// Payment routes
-		v1.POST("/initialize", paymentController.InitializePayment)
-		v1.GET("/verify/:reference", paymentController.VerifyPayment)
-		v1.GET("/:paymentId/status", paymentController.GetPaymentStatus)
-		v1.GET("/banks", paymentController.ListBanks)
-		v1.GET("/resolve-account", paymentController.ResolveAccount)
+		payments.POST("/initialize", paymentController.InitializePayment)
+		payments.GET("/verify/:reference", paymentController.VerifyPayment)
+		payments.GET("/:paymentId/status", paymentController.GetPaymentStatus)
+		payments.GET("/banks", paymentController.ListBanks)
+		payments.GET("/resolve-account", paymentController.ResolveAccount)
 
 		// Webhook route (with signature verification middleware)
 		webhookSecret := cfg.PaystackSecretKey
 		if cfg.PaystackWebhookSecret != "" {
 			webhookSecret = cfg.PaystackWebhookSecret
 		}
-		v1.POST("/webhook", middleware.WebhookAuthMiddleware(webhookSecret), webhookController.HandleWebhook)
+		payments.POST("/webhook", middleware.WebhookAuthMiddleware(webhookSecret), webhookController.HandleWebhook)
 	}
+
+	// Also add routes with contribute endpoint at root for public access
+	// nginx forwards /api/v1/payments/contribute to /payments/contribute
+	r.POST("/payments/contribute", paymentController.InitializePayment)
 
 	log.Printf("Routes configured successfully")
 }

@@ -207,6 +207,11 @@ table "goals" {
     null = false
     type = bigint
   }
+  column "fixed_contribution_amount" {
+    null = true
+    type = bigint
+    comment = "Fixed amount each contributor must pay for group contributions. NULL means any amount allowed."
+  }
   column "currency" {
     null = false
     type = varchar(3)

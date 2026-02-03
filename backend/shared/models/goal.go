@@ -22,15 +22,16 @@ const (
 
 // Goal represents a funding goal with milestone support
 type Goal struct {
-	ID           uuid.UUID  `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	OwnerID      uuid.UUID  `gorm:"type:uuid;not null;index" json:"owner_id"`
-	Title        string     `gorm:"not null;size:255" json:"title"`
-	Description  string     `gorm:"type:text" json:"description"`
-	TargetAmount int64      `gorm:"not null" json:"target_amount"` // Amount in smallest currency unit
-	Currency     string     `gorm:"not null;size:3;default:'NGN'" json:"currency"`
-	Deadline     *time.Time `json:"deadline,omitempty"`
-	Status       GoalStatus `gorm:"not null;default:'OPEN';size:20" json:"status"`
-	IsPublic     bool       `gorm:"not null;default:true" json:"is_public"`
+	ID                      uuid.UUID  `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	OwnerID                 uuid.UUID  `gorm:"type:uuid;not null;index" json:"owner_id"`
+	Title                   string     `gorm:"not null;size:255" json:"title"`
+	Description             string     `gorm:"type:text" json:"description"`
+	TargetAmount            int64      `gorm:"not null" json:"target_amount"` // Amount in smallest currency unit
+	FixedContributionAmount *int64     `json:"fixed_contribution_amount,omitempty"` // Fixed amount each contributor must pay (nil = any amount allowed)
+	Currency                string     `gorm:"not null;size:3;default:'NGN'" json:"currency"`
+	Deadline                *time.Time `json:"deadline,omitempty"`
+	Status                  GoalStatus `gorm:"not null;default:'OPEN';size:20" json:"status"`
+	IsPublic                bool       `gorm:"not null;default:true" json:"is_public"`
 
 	// Deposit account details (where goal owner receives withdrawals)
 	DepositBankName      string `gorm:"size:100" json:"deposit_bank_name,omitempty"`

@@ -41,18 +41,24 @@ func (s *GoalService) CreateGoal(ownerID uuid.UUID, req dto.CreateGoalRequest) (
 		return nil, errors.New("target amount must be greater than 0")
 	}
 
+	// Validate fixed contribution amount if provided
+	if req.FixedContributionAmount != nil && *req.FixedContributionAmount <= 0 {
+		return nil, errors.New("fixed contribution amount must be greater than 0")
+	}
+
 	goal := &models.Goal{
-		OwnerID:       ownerID,
-		Title:         req.Title,
-		Description:   req.Description,
-		TargetAmount:  req.TargetAmount,
-		Currency:      req.Currency,
-		Deadline:      req.Deadline,
-		Status:        models.GoalStatusOpen,
-		DepositBankName:      req.BankName,
-		DepositAccountNumber: req.AccountNumber,
-		DepositAccountName:   req.AccountName,
-		IsPublic:             true,
+		OwnerID:                 ownerID,
+		Title:                   req.Title,
+		Description:             req.Description,
+		TargetAmount:            req.TargetAmount,
+		FixedContributionAmount: req.FixedContributionAmount,
+		Currency:                req.Currency,
+		Deadline:                req.Deadline,
+		Status:                  models.GoalStatusOpen,
+		DepositBankName:         req.BankName,
+		DepositAccountNumber:    req.AccountNumber,
+		DepositAccountName:      req.AccountName,
+		IsPublic:                true,
 	}
 
 	if req.IsPublic != nil {
@@ -161,6 +167,14 @@ func (s *GoalService) UpdateGoal(goalID, userID uuid.UUID, req dto.UpdateGoalReq
 	}
 	if req.Description != nil {
 		goal.Description = *req.Description
+	}
+	if req.FixedContributionAmount != nil {
+		// If 0, set to nil (remove fixed amount), otherwise set the value
+		if *req.FixedContributionAmount == 0 {
+			goal.FixedContributionAmount = nil
+		} else {
+			goal.FixedContributionAmount = req.FixedContributionAmount
+		}
 	}
 	if req.BankName != nil {
 		goal.DepositBankName = *req.BankName

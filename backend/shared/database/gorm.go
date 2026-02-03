@@ -153,13 +153,6 @@ func AutoMigrateService(db *gorm.DB, serviceName string) error {
 		); err != nil {
 			return fmt.Errorf("failed to migrate ledger models: %w", err)
 		}
-	case "notifications":
-		if err := db.AutoMigrate(
-			&models.Notification{},
-			&models.NotificationPreferences{},
-		); err != nil {
-			return fmt.Errorf("failed to migrate notification models: %w", err)
-		}
 	default:
 		return fmt.Errorf("unknown service name: %s", serviceName)
 	}
